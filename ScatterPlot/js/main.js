@@ -1,45 +1,4 @@
-/*let allTestData = [{
-  "country": "Belgium",
-  "date": "2020-01-01",
-  "swipe_passes": 10,
-  "swipe_likes": 20,
-  "messages": 76,
-  "appOpens": 44,
-  "userid": "1234",
-  "category": "Measure 3",
-  "toolTipVisible": false
-}, {
-  "country": "Belgium",
-  "date": "2020-01-01",
-  "swipe_passes": 40,
-  "swipe_likes": 23,
-  "messages": 7,
-  "appOpens": 12,
-  "userid": "3453",
-  "category": "Measure 1",
-  "toolTipVisible": false
-}, {
-  "country": "Belgium",
-  "date": "2020-01-01",
-  "swipe_passes": 78,
-  "swipe_likes": 29,
-  "messages": 70,
-  "appOpens": 50,
-  "userid": "4321",
-  "category": "No Measure",
-  "toolTipVisible": false
-}, {
-  "country": "Germany",
-  "date": "2020-01-01",
-  "swipe_passes": 1,
-  "swipe_likes": 1,
-  "messages": 1,
-  "appOpens": 1,
-  "userid": "4321",
-  "category": "Measure 2",
-  "toolTipVisible": false
-}
-]*/
+
 var selectedCountry = "Belgium";
 d3.json("data/testdata_app.json", d => {
   /*  return {
@@ -52,37 +11,11 @@ d3.json("data/testdata_app.json", d => {
     }*/
 }).then(data => {
 
-  // We need to make sure that the data are sorted correctly by date and then by average app opens
-  // data = data.sort((a, b) => d3.ascending(a.date, b.date)|| d3.descending(a.appOpens/(Math.max(a.activeUsers,1)),b.appOpens/(Math.max(b.activeUsers,1))));
 
-  // createScatterPlot(data);
   var filterData = filterJSON(data, selectedCountry);
-  // console.log(filterData);
+
   createScatterPlot(filterData);
 })
-//allTestData= JSON.parse(allTestData).filter(d => d.country == 'Belgium');
-
-// Set the time format
-/*const parseTime = d3.timeParse("%Y");
-let testdata = d3.json("data/testdata.json");
-
-d3.json("data/testdata.json", d => {
-  return {
-    date: d[i].date,
-    country: d[i].country,
-    swipe_passes: d[i].swipe_passes,
-    swipe_likes: d[i].swipe_likes,
-    messages: d[i].messages,
-    appOpens: d[i].appOpens
-
-
-  }
-}).then(data => {
-  // We need to make sure that the data are sorted correctly by date and then by average app opens
-  // data = data.sort((a, b) => d3.ascending(a.date, b.date)|| d3.descending(a.appOpens/(Math.max(a.activeUsers,1)),b.appOpens/(Math.max(b.activeUsers,1))));
-  createScatterPlot(data);
- 
-})*/
 
 
 var heightGraph = 400;
@@ -109,12 +42,12 @@ function changeTitle() {
 
   selectedCountry = element_ddCountry.value;
   element_title.textContent = selectedCountry;
-  //  d3.select("svg").remove();
+
   const element = document.querySelectorAll(".bubble");
   for (var i = 0; i < element.length; i++) {
     d3.select(element[i]).remove();
   }
-  //d3.select(element).remove();
+
   d3.json("data/testdata_app.json", d => {
 
   }).then(data => {
@@ -131,8 +64,6 @@ function changeTitle() {
 function addCountry() {
   let text = document.getElementById("titleCountry");
   text.textContent = selectedCountry;
-  // text.textContent = "Country 1";
-
   const opt1 = document.createElement("option");
   opt1.value = "Dyn Country 3";
   opt1.text = "Dyn Country 3";
@@ -225,10 +156,7 @@ function createScatterPlot(allTestData) {
     .join("g")
     .attr("class", "bubble-tip")
     .attr("id", (d) => "bubble-tip-" + d.userid)
-    // .attr("transform", d => "translate(" + (yScale(d.swipe_likes+d.swipe_passes) ) + ", " + xScale(d.messages) + ")")
     .attr("transform", d => "translate(" + (xScale(d.messages) + 20) + ", " + yScale(d.swipe_likes + d.swipe_passes) + ")")
-
-    //   .attr("transform", d => "translate(" + (xScale(d.messages) + 20) + ", " + yScale(d.swipe_likes) + ")")
     .style("display", "none")
     .append("rect")     // this is the background to the tooltip
     .attr("x", -5)

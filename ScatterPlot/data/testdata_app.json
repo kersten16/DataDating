@@ -1,0 +1,46 @@
+[
+    {
+        "country": "Belgium",
+        "date": "2020-01-01",
+        "swipe_passes": 10,
+        "swipe_likes": 20,
+        "messages": 76,
+        "appOpens": 44,
+        "userid": "1234",
+        "category": "Measure 3",
+        "toolTipVisible": false
+    },
+    {
+        "country": "Belgium",
+        "date": "2020-01-01",
+        "swipe_passes": 40,
+        "swipe_likes": 23,
+        "messages": 7,
+        "appOpens": 12,
+        "userid": "3453",
+        "category": "Measure 1",
+        "toolTipVisible": false
+    },
+    {
+        "country": "Belgium",
+        "date": "2020-01-01",
+        "swipe_passes": 78,
+        "swipe_likes": 29,
+        "messages": 70,
+        "appOpens": 50,
+        "userid": "4321",
+        "category": "No Measure",
+        "toolTipVisible": false
+    },
+    {
+        "country": "Germany",
+        "date": "2020-01-01",
+        "swipe_passes": 56,
+        "swipe_likes": 34,
+        "messages": 80,
+        "appOpens": 90,
+        "userid": "4444",
+        "category": "Measure 2",
+        "toolTipVisible": false
+    }
+]

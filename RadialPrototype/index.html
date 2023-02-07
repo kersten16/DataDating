@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Gender Pay Gap | D3.js Tutorial</title>
+	<link rel="stylesheet" type="text/css" href="css/main.css">
+</head>
+<body>
+	<div class="responsive-svg-container" id="form">
+		<label for="dateSlider">Date</label>
+		<input id="dateSlider" type="range" value="2020" min="2015" max="2020" oninput="dateText.value=dateSlider.value" />
+		<input id="dateText" type="number" value="2020" min="2015" max="2020" oninput="dateSlider.value=dateText.value" disabled />
+	</div>
+	<div id="radial" class="responsive-svg-container"></div>
+
+	<script src="https://d3js.org/d3.v7.min.js"></script>
+	<script src="js/main.js"></script>
+</body>
+</html>

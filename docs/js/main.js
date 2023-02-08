@@ -102,7 +102,7 @@ function createRadialChart(data){
   for(tick = 1; tick <= ticks; tick++) {
       var value = (max * tick) / (ticks-1);
       var plabel = get_xy(value*(ticks-1)/ticks+5, 1);
-      console.log(tick, value, plabel)
+      //console.log(tick, value, plabel)
       svg.append('text')
           .attr('x', plabel[0])
           .attr('y', plabel[1])

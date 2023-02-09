@@ -1,7 +1,7 @@
 # InfoVis
 Universite Paris Saclay Interactive Information Visalization
 
-Visuals on https://kersten16.github.io/InfoVis/docs
+[Visuals HERE](https://kersten16.github.io/InfoVis/docs)
 
 ### What are the visualizations and how to read them
 

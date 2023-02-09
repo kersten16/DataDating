@@ -33,7 +33,7 @@ function createCloudChart(data){
   var images = [], numSwipes = Math.floor(newData[3]['swipes']/10), swipeRem=Math.ceil(newData[3]['swipes']%10), numMsg = Math.floor(newData[3]['messages']/10), msgRem=Math.ceil(newData[3]['messages']%10),maxImages = numSwipes+numMsg, padding=3;
   var msgIconPath= "https://kersten16.github.io/InfoVis/docs/icons/message.png";
   var swipeIconPath = "https://kersten16.github.io/InfoVis/docs/icons/thumbs-up.png";
-  console.log(numMsg, numSwipes, swipeRem,msgRem);
+  //console.log(numMsg, numSwipes, swipeRem,msgRem);
   for(let i = 0; i< maxImages; i++){
     //const weight = 10;
     
@@ -46,7 +46,7 @@ function createCloudChart(data){
       numSwipes-=1;
     }
     else if(numMsg>0){
-      console.log("should be");
+      //console.log("should be");
       images.push({
         url:msgIconPath,
         weight:10

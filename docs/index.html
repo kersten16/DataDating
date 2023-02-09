@@ -11,9 +11,9 @@
 	<h1 >Pandemic Dating</h1>
 	<h2>A Visualization of How Online Love Adapted to the Pandemic</h2>
 	<div class="responsive-svg-container" id="form">
-		<label for="dateSlider">Date</label>
-		<input id="dateSlider" type="range" value="2020" min="2015" max="2020" oninput="dateText.value=dateSlider.value" />
-		<input id="dateText" type="number" value="2020" min="2015" max="2020" oninput="dateSlider.value=dateText.value" disabled />
+		<div id="timeLine">
+			<button id="play-button">Play</button>
+		  </div>
 	</div>
 	<div id="radial" class="responsive-svg-container"></div>
 	<div id="cloud" class="responsive-svg-container"></div>
@@ -47,8 +47,9 @@
 
 		<svg id="map" width="400" height="300"></svg>
 	</div>
+	<!-- <script src="js/timeline.js"></script> -->
 	<script src="js/Scatterplot.js"></script>	
-	<script src="js/main.js"></script>
+	<script src="js/radial.js"></script>
 	<script src="js/cloud.js"></script>
 </body>
 </html>

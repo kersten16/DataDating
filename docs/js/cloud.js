@@ -36,12 +36,13 @@ function createCloudChart(data){
   console.log(numMsg, numSwipes, swipeRem,msgRem);
   for(let i = 0; i< maxImages; i++){
     //const weight = 10;
-    console.log(i);
+    
     if(numSwipes>0){
       images.push({
         url:swipeIconPath,
         weight:10
       });
+      //console.log(swipeIconPath);
       numSwipes-=1;
     }
     else if(numMsg>0){

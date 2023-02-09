@@ -14,34 +14,36 @@
 	</div>
 	<div id="radial" class="responsive-svg-container"></div>
 	<div id="cloud" class="responsive-svg-container"></div>
-	<h1 id="titleCountry">Title comes here</h1>
-	<script src="https://d3js.org/d3.v6.min.js"></script>
-	<select id="select-country" style="position: absolute; top:0px; left:0px;"onchange="changeTitle()">
-		<option value="Belgium" selected>Belgium</option>
-		<option value="Germany">Germany</option>
-	
-	</select>
-	<div id="plot-wrapper" style="position: relative; overflow: visible; margin: 10px 200px;">
-		<svg id="plotSVG" width=700 height=500></svg>
-		<select id="select-y-var" style="position: absolute; top:0px; left:0px;" >
-			<option value="swipes" selected>Swipes</option>
-			<option value="swipe_passes">Passes</option>
-			<option value="swipe_likes">Likes</option>
-			<option value="messages">Messages</option>
-			<option value="appOpens">Open</option>
+	<div>
+		<h1 id="titleCountry">Title comes here</h1>
+		<script src="https://d3js.org/d3.v6.min.js"></script>
+		<select id="select-country" style="position: absolute; top:0px; left:0px;"onchange="changeTitle()">
+			<option value="Belgium" selected>Belgium</option>
+			<option value="Germany">Germany</option>
+		
 		</select>
-		<select id="select-x-var" style="position: absolute; bottom:0px; left: 600px;">
-			<option value="messages"selected>Messages</option>
-			<option value="appOpens">Open</option>
-			<option value="swipes" >Swipes</option>
-			<option value="swipe_passes">Passes</option>
-			<option value="swipe_likes">Likes</option>
+		<div id="plot-wrapper" style="position: relative; overflow: visible; margin: 10px 200px;">
+			<svg id="plotSVG" width=700 height=500></svg>
+			<select id="select-y-var" style="position: absolute; top:0px; left:0px;" >
+				<option value="swipes" selected>Swipes</option>
+				<option value="swipe_passes">Passes</option>
+				<option value="swipe_likes">Likes</option>
+				<option value="messages">Messages</option>
+				<option value="appOpens">Open</option>
+			</select>
+			<select id="select-x-var" style="position: absolute; bottom:0px; left: 600px;">
+				<option value="messages"selected>Messages</option>
+				<option value="appOpens">Open</option>
+				<option value="swipes" >Swipes</option>
+				<option value="swipe_passes">Passes</option>
+				<option value="swipe_likes">Likes</option>
 
-		</select>
+			</select>
+		</div>
+		<div id="tooltip"></div>
+
+		<svg id="map" width="400" height="300"></svg>
 	</div>
-	<div id="tooltip"></div>
-
-	<svg id="map" width="400" height="300"></svg>
 	<script src="js/Scatterplot.js"></script>
 
 	<script src="https://d3js.org/d3.v7.min.js"></script>

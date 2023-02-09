@@ -5,6 +5,7 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Pandemic Dating</title>
 	<link rel="stylesheet" type="text/css" href="css/main.css">
+	<script src="https://d3js.org/d3.v7.min.js"></script>
 </head>
 <body>
 	<div class="responsive-svg-container" id="form">
@@ -15,8 +16,8 @@
 	<div id="radial" class="responsive-svg-container"></div>
 	<div id="cloud" class="responsive-svg-container"></div>
 	<div>
-		<h1 id="titleCountry">Title comes here</h1>
-		<script src="https://d3js.org/d3.v6.min.js"></script>
+		<h1 id="titleCountry">Belgium</h1>
+	
 		<select id="select-country" style="position: static;"onchange="changeTitle()">
 			<option value="Belgium" selected>Belgium</option>
 			<option value="Germany">Germany</option>
@@ -44,9 +45,7 @@
 
 		<svg id="map" width="400" height="300"></svg>
 	</div>
-	<script src="js/Scatterplot.js"></script>
-
-	<script src="https://d3js.org/d3.v7.min.js"></script>
+	<script src="js/Scatterplot.js"></script>	
 	<script src="js/main.js"></script>
 	<script src="js/cloud.js"></script>
 </body>

@@ -1,24 +1,20 @@
 # InfoVis
 Universite Paris Saclay Interactive Information Visalization
 
-## Work Allocation as of Feb 9 2023
+Visuals on https://kersten16.github.io/InfoVis/docs
 
-#### Kersten:
-- Found dataset for end use and wrote python scripts to clean and convert both sets
-- Wrote scripts in Python to process the dating data for aggregate country data
-- Discussed feedback on sketches to integrate in design
-- Created the radial lollipop graph using real data
-- Created icon cloud that will eventually be connected to the lollipop graph usign real data
-- Created Git repo and page for submission
-- Modified html page to include all graphs
-- Attach time slider to graphs and data *unfinished*
+There are three visualizations shown on the page. The first is a radial lollipop chart. Currently, this would be the main overview. Below, is an example icon cloud that would be attached at the end of each lollipop on the first chart. Lastly, is a scatterplot with history over time that would be accessed by selecting a country on the first chart.
 
-#### Lilo
-- Found dataset for end use and manually cleaned and reformatted the datasets
-- Created the radial lollipop graph using real data
-- Created scatterplot with trends
-- Created skeleton for end report
+#### Radial lollipop:
+This chart shows the average number of times a user opened their app ont he given day per country (encoded in length), and will also show if there was a preventative COVID measure announced that day for each country as well as have the icon clouds integrated (described below). There is a time slider to scroll through different available dates. This allows a comparison in user activity for each country and whether the region was under isolating restrictions.
 
-#### Anshul
-- Found datasets that were not used in final project
-- Reformatting COVID data *unfinished*
+#### Icon cloud:
+The cloud is made of icons, hearts represent swipes (pass or like) and message icons represent messages sent by a given user. Each full size icon represents 10 counts and if there are any leftovers, an icon scaled by that amount (for example if there was 64 messages, there would be 6 full sized icons and one icon at 4/10th of the size). This allows viewers to gauge the proportion of activity allocated to swiping vs messages.
+
+#### Scatterplot:
+
+## WHO are these visualizations for
+
+## WHY the audience should care about it;
+
+## HOW to read the visualization.

@@ -25,7 +25,6 @@ d3.json("data/allDates_ByCountry.json", d => {
   datingData = datingData.sort((a, b) => d3.ascending(a.date, b.date)|| d3.ascending(a.country, b.country));
   var listOfCountries = datingData.map(d => d.country);
   uniqueListOfCountries = [...new Set(listOfCountries).values()];
-  console.log(uniqueListOfCountries);
     //a.appOpens/(Math.max(a.activeUsers,1)),b.appOpens/(Math.max(b.activeUsers,1))));
   createVisual(datingData);
   //createTimeLine(data);
@@ -37,14 +36,15 @@ function createVisual(data){
     //console.log(startDate, endDate)
 
   var timelineMargin = { top: 50, right: 50, bottom: 0, left: 50 },
-    timelineWidth = 960 - timelineMargin.left - timelineMargin.right,
-    timelineHeight = 300 - timelineMargin.top - timelineMargin.bottom;
+    timelineWidth = 1200 - timelineMargin.left - timelineMargin.right,
+    timelineHeight = 200 - timelineMargin.top - timelineMargin.bottom;
 
   var svg = d3.select("#timeLine")
     .append("svg")
     .attr("width", timelineWidth + timelineMargin.left + timelineMargin.right)
     .attr("height", timelineHeight + timelineMargin.top + timelineMargin.bottom);
-
+    //.attr('transform', 'translate(' + (timelineMargin.left-(width)/2) + ',' + 0 + ')');
+//FIX ALIGNMENT ISSUES
   ////////// slider //////////
 
   var moving = false;
@@ -52,6 +52,7 @@ function createVisual(data){
   var targetValue = timelineWidth;
 
   var playButton = d3.select("#play-button");
+  playButton.attr('class', 'position-absolute top-100 start-50');
 
   var timeX = d3.scaleTime()
     .domain([startDate, endDate])
@@ -98,7 +99,7 @@ function createVisual(data){
     .attr("class", "label")
     .attr("text-anchor", "middle")
     .text(formatDate(startDate))
-    .attr("transform", "translate(0," + (-25) + ")")
+    .attr("transform", "translate(0," + (-15) + ")")
 
     playButton
       .on("click", function () {
@@ -113,7 +114,6 @@ function createVisual(data){
           timer = setInterval(step, 100);
           button.text("Pause");
         }
-        console.log("Slider moving: " + moving);
       });
 
   function step() {
@@ -125,7 +125,6 @@ function createVisual(data){
       clearInterval(timer);
       // timer = 0;
       playButton.text("Play");
-      console.log("Slider moving: " + moving);
     }
   }
 
@@ -158,8 +157,8 @@ function to_radian(i){
 }
 
 function get_xy(value, index, radius, max){
-  var center_y = ((radius*2)+100) / 2-100;
-  var center_x = width / 2;
+  var center_y = radius;
+  var center_x = radius/2;
     var length = radius * value / max;
     y = center_y - length * Math.cos(to_radian(rotated(index)));
     x = center_x + length * Math.sin(to_radian(rotated(index)));
@@ -197,13 +196,14 @@ function get_dy(index){
   var svg = d3.select('#radial').append('svg')
   .attr('width', width + margin.left + margin.right)
   .attr('height', height + margin.top + margin.bottom)
+  .attr('transform', 'translate(' + -250+ ',0)')
   .append('g')
-  .attr('transform', 'translate(' + margin.left + ',' + 200 + ')');
+  .attr('transform', 'translate(' + (radius-200)+ ',' + 100 + ')');
+  
 
   for(i in uniqueListOfCountries){
     
     var country = uniqueListOfCountries[i];
-    console.log(country);
     var start = get_xy(max / ticks, i, radius, max); //create a donut
     var end = get_xy(max+shift, i, radius, max);
 
@@ -306,7 +306,6 @@ function get_dy(index){
         var currentDate = formatDateForData(new Date(label.text()));
         //const avgUsers = d3.select(this).node();
           if(!d3.select(this).select('title').text().includes(currentDate)){
-            console.log(d3.select(this).select('title').text(), currentDate)
             d3.select(this)
               .lower();
             }

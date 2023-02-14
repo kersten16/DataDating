@@ -2,13 +2,13 @@
 //const parseTime = d3.timeParse("%Y");
 
 var formatDateIntoMonth = d3.timeFormat("%m/%y");
-var formatDate = d3.timeFormat("%b %Y");
+var formatDate = d3.timeFormat("%b %d %Y");
 var formatDateForData = d3.timeFormat("%Y-%m-%d")
 var parseDate = d3.timeParse("%m/%d/%y");
 
-var margin = {top: 50, right: 50, bottom: 50, left: 50},height = 1000;
+var margin = {top: 50, right: 50, bottom: 50, left: 50},height = 1600;
 const width = 1600;
-
+let uniqueListOfCountries= [];
 
 // Load the dataset and formatting variables
 d3.json("data/allDates_ByCountry.json", d => {
@@ -22,19 +22,23 @@ d3.json("data/allDates_ByCountry.json", d => {
   }
 }).then(data => {
   // We need to make sure that the data are sorted correctly by date and then by average app opens
-  data = data.sort((a, b) => d3.ascending(a.date, b.date)|| d3.descending(a.appOpens/(Math.max(a.activeUsers,1)),b.appOpens/(Math.max(b.activeUsers,1))));
-
-  createTimeLine(data);
+  data = data.sort((a, b) => d3.ascending(a.date, b.date)|| d3.ascending(a.country, b.country));
+  var listOfCountries = data.map(d => d.country);
+  uniqueListOfCountries = [...new Set(listOfCountries).values()];
+  console.log(uniqueListOfCountries);
+    //a.appOpens/(Math.max(a.activeUsers,1)),b.appOpens/(Math.max(b.activeUsers,1))));
+  createVisual(data);
+  //createTimeLine(data);
 })
-
-function createTimeLine(data){
+/***********************************CREATE TIMELINE **************************************/
+function createVisual(data){
     var startDate = new Date(data[0].date),
     endDate = new Date(data[data.length-1].date);
     //console.log(startDate, endDate)
 
   var timelineMargin = { top: 50, right: 50, bottom: 0, left: 50 },
     timelineWidth = 960 - timelineMargin.left - timelineMargin.right,
-    timelineHeight = 500 - timelineMargin.top - timelineMargin.bottom;
+    timelineHeight = 300 - timelineMargin.top - timelineMargin.bottom;
 
   var svg = d3.select("#timeLine")
     .append("svg")
@@ -49,7 +53,7 @@ function createTimeLine(data){
 
   var playButton = d3.select("#play-button");
 
-  var x = d3.scaleTime()
+  var timeX = d3.scaleTime()
     .domain([startDate, endDate])
     .range([0, targetValue])
     .clamp(true);
@@ -60,8 +64,8 @@ function createTimeLine(data){
 
   slider.append("line")
     .attr("class", "track")
-    .attr("x1", x.range()[0])
-    .attr("x2", x.range()[1])
+    .attr("x1", timeX.range()[0])
+    .attr("x2", timeX.range()[1])
     .select(function () { return this.parentNode.appendChild(this.cloneNode(true)); })
     .attr("class", "track-inset")
     .select(function () { return this.parentNode.appendChild(this.cloneNode(true)); })
@@ -70,7 +74,7 @@ function createTimeLine(data){
       .on("start.interrupt", function () { slider.interrupt(); })
       .on("start drag", function (e) {
         currentValue = e.x;
-        updateSlider(x.invert(currentValue));
+        updateSlider(timeX.invert(currentValue));
       })
     );
 
@@ -78,10 +82,10 @@ function createTimeLine(data){
     .attr("class", "ticks")
     .attr("transform", "translate(0," + 18 + ")")
     .selectAll("text")
-    .data(x.ticks(10))
+    .data(timeX.ticks(10))
     .enter()
     .append("text")
-    .attr("x", x)
+    .attr("x", timeX)
     .attr("y", 10)
     .attr("text-anchor", "middle")
     .text(function (d) { return formatDateIntoMonth(d); });
@@ -113,7 +117,7 @@ function createTimeLine(data){
       });
 
   function step() {
-    updateSlider(x.invert(currentValue));
+    updateSlider(timeX.invert(currentValue));
     currentValue = currentValue + (targetValue / 151);
     if (currentValue > targetValue) {
       moving = false;
@@ -127,57 +131,46 @@ function createTimeLine(data){
 
   function updateSlider(h) {
     // update position and text of label according to slider scale
-    handle.attr("cx", x(h));
+    handle.attr("cx", timeX(h));
     label
-      .attr("x", x(h))
+      .attr("x", timeX(h))
       .text(formatDate(h));
-
     // filter data set and redraw plot
-    console.log(formatDateForData(h))
-    d3.select('#radial').select('svg').remove()
-    let newData = data.filter(data => data.date == formatDateForData(h)).filter(function(d){ return d.activeUsers != 0 });
-    update(newData);
+    //console.log(formatDateForData(h))
+    //d3.select('#radial').select('svg').remove()
+    updateRadial();
   }
+/***************************************CREATE RADIAL GRAPH*********************************************/
 
-}
-
-  //Add event listener to the date slider
-  d3.select("#timeLine").on("change", function(e) {
-    // Get the date selected
-    console.log(`date = ${this.value} `);
-    // Update the chart
-    updateSlider();
-  });
-
-  function rotated(i, newData){
+  function rotated(i){
     var rotated_i = parseInt(i) -1;
-    if(rotated_i >= newData.length){
-        rotated_i = i - newData.length;
+    if(rotated_i >= uniqueListOfCountries.length){
+        rotated_i = i - uniqueListOfCountries.length;
     }
     else if(rotated_i < 0) {
-        rotated_i = newData.length - 1 + parseInt(i);
+        rotated_i = uniqueListOfCountries.length - 1 + parseInt(i);
     }
     return rotated_i
 }
 
-function to_radian(i, newData){
-    return i * 2 * Math.PI / newData.length;
+function to_radian(i){
+    return i * 2 * Math.PI / uniqueListOfCountries.length;
 }
 
-function get_xy(value, index, radius, max, newData){
+function get_xy(value, index, radius, max){
   var center_y = ((radius*2)+100) / 2-100;
   var center_x = width / 2;
     var length = radius * value / max;
-    y = center_y - length * Math.cos(to_radian(rotated(index, newData), newData));
-    x = center_x + length * Math.sin(to_radian(rotated(index, newData), newData));
+    y = center_y - length * Math.cos(to_radian(rotated(index)));
+    x = center_x + length * Math.sin(to_radian(rotated(index)));
     return [x, y];
 }
 
-function get_anchor(i, newData){
-    if(rotated(i, newData) == 0 | rotated(i, newData) == newData.length / 2){
+function get_anchor(i){
+    if(rotated(i) == 0 | rotated(i) == uniqueListOfCountries.length / 2){
         return 'middle';
     }
-    else if(rotated(i, newData) < newData.length / 2){
+    else if(rotated(i) < uniqueListOfCountries.length / 2){
         return 'start';
     }
     else{
@@ -185,121 +178,144 @@ function get_anchor(i, newData){
     }
 }
 
-function get_dy(index, newData){
-  var dy = -3 * Math.cos(to_radian(rotated(index, newData), newData));
+function get_dy(index){
+  var dy = -3 * Math.cos(to_radian(rotated(index)));
   dy += 3;
-  if(rotated(index, newData) == 0){
+  if(rotated(index) == 0){
     dy -= 4;
   }
   return dy;
 }
 
-  function update(newData) {
 
-    var max= newData[0]['appOpens']/newData[0]['activeUsers'];
-    max=max+max%5
-    var ticks = max/5 +1;
-    var radius = max*5;
-    height= (radius*2)+200;
-      
-    var svg = d3.select('#radial').append('svg')
-          .attr('width', width + margin.left + margin.right)
-          .attr('height', height + margin.top + margin.bottom)
-          .append('g')
-          .attr('transform', 'translate(' + margin.left + ',' + 200 + ')');
+  var max= 300;
+  var ticks= (max/10)+1
+  var radius = 700;
+  var shift = max / ticks;
+  var startDate=(data[0]["date"]);
+  let newData = data.filter(data => data.date == startDate);
+  var svg = d3.select('#radial').append('svg')
+  .attr('width', width + margin.left + margin.right)
+  .attr('height', height + margin.top + margin.bottom)
+  .append('g')
+  .attr('transform', 'translate(' + margin.left + ',' + 200 + ')');
 
+  for(i in uniqueListOfCountries){
+    
+    var country = uniqueListOfCountries[i];
+    console.log(country);
+    var start = get_xy(max / ticks, i, radius, max); //create a donut
+    var end = get_xy(max+shift, i, radius, max);
 
-      //   // 1.4 Get the selected date and sorting method
-      // const date = d3.select("#timeLine").node().value;
-      //   // 1.5. Filter and sorting the new data
-      // newData= data.filter(data => data.date == date);
+    svg.append('line')
+        .attr('x1', start[0])
+        .attr('y1', start[1])
+        .attr('x2', end[0])
+        .attr('y2', end[1])
+        .style('stroke', 'lightgrey')
+        .style('stroke-width', 0.5);
 
+    
+    //end = get_xy(highest_value+shift, i, radius, max, newData);
+
+   
+        // circles.on("mouseover",mouseover);
+
+        // circles.on("mouseout", mouseout);
         
-      var shift = max / ticks;
-  /**scale label**/
-      var value = 0;
-      var plabel = get_xy(value*(ticks-1)/ticks+5, 1, radius, max, newData);
-      svg.append('text')
-            .attr('x', plabel[0])
-            .attr('y', plabel[1])
-            .attr('dx', 2)
-            .attr('class', 'label')
-            .style('font-weight', 'lighter')
-            .style('fill', 'grey')
-            .text(value);
-        for(tick = 1; tick <= ticks; tick++) {
-            var value = (max * tick) / (ticks-1);
-            var plabel = get_xy(value*(ticks-1)/ticks+5, 1, radius, max, newData);
-            //console.log(tick, value, plabel)
-            svg.append('text')
-                .attr('x', plabel[0])
-                .attr('y', plabel[1])
-                .attr('dx', 2)
-                .attr('class', 'label')
-                .style('font-weight', 'lighter')
-                .style('fill', 'grey')
-                .text(Math.ceil(value));  
-        }
-      /****/
-        for(i in newData){
-            var item = newData[i];
-            /*round markers */
-            for(tick = 0; tick <= ticks; tick++){
-                var value = max * tick / ticks;
-                var start = get_xy(value+shift, i, radius, max, newData);
-                var end = get_xy(value+shift, parseInt(i) + 1,radius, max, newData);
-                svg.append('line')
-                    .attr('x1', start[0])
-                    .attr('y1', start[1])
-                    .attr('x2', end[0])
-                    .attr('y2', end[1])
-                    .style('stroke', 'lightgrey')
-                    .style('stroke-width', 0.5);
+        //   // Add the tooltip when hover on the bar
+        //circles.append('title').text(d => d.country);
+
+    var plabel = get_xy((max+shift) * 1.04, i, radius,max);
+
+    svg.append('text')
+        .attr('x', plabel[0])
+        .attr('y', plabel[1])
+        .attr('dy', function(){return get_dy(i)})
+        .attr('text-anchor', get_anchor(i))
+        .attr('class', 'label')
+        .text(country);
+  }
+  plotDataCircles(newData);
+
+  
+/**********************************HANDLE DATA UPDATES************************************/
+  function plotDataCircles(newData){
+    var max= 300;
+    var radius = 700;
+
+    var locations = svg.selectAll(".location")
+      .data(newData);
+
+    locations
+      .attr('fill', 'lightgrey')
+      .transition()
+      .attr('r', 4);
+
+    // if filtered dataset has more circles than already existing, transition new ones in
+    locations.enter()
+      .append("circle")
+      .attr("class", "location")
+      .attr('cx', function (d) { return get_xy(d.appOpens/Math.max(d.activeUsers,1),uniqueListOfCountries.indexOf(d.country),radius,max)[0];})
+      .attr('cy', function (d) { return get_xy(d.appOpens/Math.max(d.activeUsers,1),uniqueListOfCountries.indexOf(d.country),radius,max)[1];})
+      .attr('r', 8)
+      .attr('fill', 'red')
+      .on("mouseover", mouseover)
+      .on("mouseout", mouseout)
+      .append('title').text(d => d.country + ": "+d.date+ "\n"+d.appOpens/Math.max(d.activeUsers,1))
+      //.on("click", openScatterplot)
+      .transition()
+      .duration(400)
+      .attr("r", 25)
+      .transition()
+      .attr("r", 10);
+      
+
+
+    // if filtered dataset has less circles than already existing, grey excess
+    locations.exit()
+    .remove();
+
+    function mouseover () {
+      currentDate = new Date(label.text());
+      console.log(currentValue);
+      const avgUsers = d3.select(this).node();
+      // if(d3.select(this).data==formatDateForData(currentDate)){
+
+      // }
+        d3.select(this)
+          .raise();
+        d3.select(this)
+          .attr("stroke", "#333")
+          .attr("stroke-width", 2);  
+       };
+     
+       function mouseout () {
+        const avgUsers = d3.select(this).node();
+          if(d3.select(this).data!=formatDateForData(currentDate)){
+            d3.select(this)
+              .lower();
             }
-            /**/
 
-            var highest_value = item['appOpens']/item['activeUsers'];
+         d3.select(this)
+           .attr("stroke", null);
 
-            var start = get_xy(max / ticks, i, radius, max, newData); //create a donut
-            var end = get_xy(max+shift, i, radius, max ,newData);
+       };
+ 
+  }
 
-            svg.append('line')
-                .attr('x1', start[0])
-                .attr('y1', start[1])
-                .attr('x2', end[0])
-                .attr('y2', end[1])
-                .style('stroke', 'lightgrey')
-                .style('stroke-width', 0.5);
-
-            
-            end = get_xy(highest_value+shift, i, radius, max, newData);
-
-            svg.append('line')
-                .attr('x1', start[0])
-                .attr('y1', start[1])
-                .attr('x2', end[0])
-                .attr('y2', end[1])
-                .style('stroke', 'black')
-                .style('stroke-width', 1.3);
-
-             svg.append('circle')
-                .attr('cx', end[0])
-                .attr('cy', end[1])
-                .attr('r', '5')
-                .attr('fill', 'red');
-
-            var plabel = get_xy((max+shift) * 1.04, i, radius,max, newData);
-
-            svg.append('text')
-                .attr('x', plabel[0])
-                .attr('y', plabel[1])
-                .attr('dy', function(){return get_dy(i, newData)})
-                .attr('text-anchor', get_anchor(i, newData))
-                .attr('class', 'label')
-                .text(item['country']);
-          }
+  function updateRadial() {
+    const date = new Date(label.text());
+    newData = data.filter(data => data.date <= formatDateForData(date));
+    plotDataCircles(newData);
+  }
+          
 
 }
+
+
+
+
 // const createBarChart = (data, colors) => {
 //   // Set the dimensions and margins of the graph
 //   const width = 900, height = 400;

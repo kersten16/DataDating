@@ -20,14 +20,14 @@ d3.json("data/allDates_ByCountry.json", d => {
     swipes : d[i].swipes,
     messages : d[i].messages
   }
-}).then(data => {
+}).then(datingData => {
   // We need to make sure that the data are sorted correctly by date and then by average app opens
-  data = data.sort((a, b) => d3.ascending(a.date, b.date)|| d3.ascending(a.country, b.country));
-  var listOfCountries = data.map(d => d.country);
+  datingData = datingData.sort((a, b) => d3.ascending(a.date, b.date)|| d3.ascending(a.country, b.country));
+  var listOfCountries = datingData.map(d => d.country);
   uniqueListOfCountries = [...new Set(listOfCountries).values()];
   console.log(uniqueListOfCountries);
     //a.appOpens/(Math.max(a.activeUsers,1)),b.appOpens/(Math.max(b.activeUsers,1))));
-  createVisual(data);
+  createVisual(datingData);
   //createTimeLine(data);
 })
 /***********************************CREATE TIMELINE **************************************/
@@ -215,16 +215,6 @@ function get_dy(index){
         .style('stroke', 'lightgrey')
         .style('stroke-width', 0.5);
 
-    
-    //end = get_xy(highest_value+shift, i, radius, max, newData);
-
-   
-        // circles.on("mouseover",mouseover);
-
-        // circles.on("mouseout", mouseout);
-        
-        //   // Add the tooltip when hover on the bar
-        //circles.append('title').text(d => d.country);
 
     var plabel = get_xy((max+shift) * 1.04, i, radius,max);
 
@@ -243,32 +233,53 @@ function get_dy(index){
   function plotDataCircles(newData){
     var max= 300;
     var radius = 700;
-
+    var currentDate = formatDateForData(new Date(label.text()));
     var locations = svg.selectAll(".location")
       .data(newData);
 
     locations
-      .attr('fill', 'lightgrey')
+      .attr('fill', function(d){
+        if(d.date==currentDate) return 'red';
+        else return 'lightgrey';
+      })
+      .attr('opacity',function(d){
+        if(d.date==currentDate) return 0.75;
+        else return 0.5;})
       .transition()
-      .attr('r', 4);
+      .attr('r', function(d){
+        if(d.date==currentDate) return 10;
+        else return 4;
+      });
 
     // if filtered dataset has more circles than already existing, transition new ones in
     locations.enter()
       .append("circle")
       .attr("class", "location")
-      .attr('cx', function (d) { return get_xy(d.appOpens/Math.max(d.activeUsers,1),uniqueListOfCountries.indexOf(d.country),radius,max)[0];})
-      .attr('cy', function (d) { return get_xy(d.appOpens/Math.max(d.activeUsers,1),uniqueListOfCountries.indexOf(d.country),radius,max)[1];})
+      .attr('cx', function (d) { return get_xy(d.appOpens/Math.max(d.activeUsers,1)+shift,uniqueListOfCountries.indexOf(d.country),radius,max)[0];})
+      .attr('cy', function (d) { return get_xy(d.appOpens/Math.max(d.activeUsers,1)+shift,uniqueListOfCountries.indexOf(d.country),radius,max)[1];})
       .attr('r', 8)
-      .attr('fill', 'red')
+      .attr('fill', function(d){
+        if(d.date==currentDate) return 'red';
+        else return 'lightgrey';
+      })
+      //.append('title').text(d => d.country + ": "+d.date+ "\n"+d.appOpens/Math.max(d.activeUsers,1))
       .on("mouseover", mouseover)
       .on("mouseout", mouseout)
-      .append('title').text(d => d.country + ": "+d.date+ "\n"+d.appOpens/Math.max(d.activeUsers,1))
       //.on("click", openScatterplot)
       .transition()
       .duration(400)
       .attr("r", 25)
       .transition()
-      .attr("r", 10);
+      .attr('r', function(d){
+        if(d.date==currentDate) return 10;
+        else return 4;
+      })
+      .attr('opacity',function(d){
+        if(d.date==currentDate) return 0.75;
+        else return 0.5;})
+      .on("end", function(){
+        d3.select(this).append('title').text(d => d.country + ": "+d.date+ "\n"+d.appOpens/Math.max(d.activeUsers,1));
+      });
       
 
 
@@ -277,28 +288,34 @@ function get_dy(index){
     .remove();
 
     function mouseover () {
-      currentDate = new Date(label.text());
-      console.log(currentValue);
       const avgUsers = d3.select(this).node();
       // if(d3.select(this).data==formatDateForData(currentDate)){
 
       // }
         d3.select(this)
           .raise();
+          
+
         d3.select(this)
           .attr("stroke", "#333")
-          .attr("stroke-width", 2);  
+          .attr("stroke-width", 2)
+          .attr('opacity', 1);  
        };
      
        function mouseout () {
-        const avgUsers = d3.select(this).node();
-          if(d3.select(this).data!=formatDateForData(currentDate)){
+        var currentDate = formatDateForData(new Date(label.text()));
+        //const avgUsers = d3.select(this).node();
+          if(!d3.select(this).select('title').text().includes(currentDate)){
+            console.log(d3.select(this).select('title').text(), currentDate)
             d3.select(this)
               .lower();
             }
 
          d3.select(this)
-           .attr("stroke", null);
+           .attr("stroke", null)
+           .attr('opacity',function(d){
+            if(d.date==currentDate) return 0.75;
+            else return 0.5;});
 
        };
  

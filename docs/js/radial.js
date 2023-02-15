@@ -33,10 +33,11 @@ d3.json("data/allDates_ByCountry.json", d => {
 function createVisual(data){
     var startDate = new Date(data[0].date),
     endDate = new Date(data[data.length-1].date);
+    const totalDays=(endDate.getTime() - startDate.getTime()) / (1000 * 3600 * 24);
     //console.log(startDate, endDate)
 
   var timelineMargin = { top: 50, right: 50, bottom: 0, left: 50 },
-    timelineWidth = 1200 - timelineMargin.left - timelineMargin.right,
+    timelineWidth = 2*width/3 - timelineMargin.left - timelineMargin.right,
     timelineHeight = 200 - timelineMargin.top - timelineMargin.bottom;
 
   var svg = d3.select("#timeLine")
@@ -111,14 +112,14 @@ function createVisual(data){
           button.text("Play");
         } else {
           moving = true;
-          timer = setInterval(step, 100);
+          timer = setInterval(step, 1000);
           button.text("Pause");
         }
       });
 
   function step() {
     updateSlider(timeX.invert(currentValue));
-    currentValue = currentValue + (targetValue / 151);
+    currentValue = currentValue + (targetValue /totalDays );
     if (currentValue > targetValue) {
       moving = false;
       currentValue = 0;
@@ -186,10 +187,10 @@ function get_dy(index){
   return dy;
 }
 
-
+/************************** MAKE RADIAL CHART *******************************/
   var max= 300;
   var ticks= (max/10)+1
-  var radius = 700;
+  var radius = 600;
   var shift = max / ticks;
   var startDate=(data[0]["date"]);
   let newData = data.filter(data => data.date == startDate);
@@ -198,7 +199,7 @@ function get_dy(index){
   .attr('height', height + margin.top + margin.bottom)
   .attr('transform', 'translate(' + -250+ ',0)')
   .append('g')
-  .attr('transform', 'translate(' + (radius-200)+ ',' + 100 + ')');
+  .attr('transform', 'translate(' + (radius-150)+ ',' + 100 + ')');
   
 
   for(i in uniqueListOfCountries){
@@ -216,7 +217,7 @@ function get_dy(index){
         .style('stroke-width', 0.5);
 
 
-    var plabel = get_xy((max+shift) * 1.04, i, radius,max);
+    var plabel = get_xy((max+shift) * 1.1, i, radius,max);
 
     svg.append('text')
         .attr('x', plabel[0])
@@ -224,32 +225,36 @@ function get_dy(index){
         .attr('dy', function(){return get_dy(i)})
         .attr('text-anchor', get_anchor(i))
         .attr('class', 'label')
-        .text(country);
+        .text(country)
+        .style('font-size', '20px');
   }
   plotDataCircles(newData);
+  for(item of newData.filter(newData => newData.date==date)){
+    createCloudChart(item);
+  }
 
   
 /**********************************HANDLE DATA UPDATES************************************/
   function plotDataCircles(newData){
     var max= 300;
-    var radius = 700;
+    var radius = 600;
     var currentDate = formatDateForData(new Date(label.text()));
     var locations = svg.selectAll(".location")
       .data(newData);
 
     locations
       .attr('fill', function(d){
-        if(d.date==currentDate) return 'red';
+        if(d.date==currentDate) return 'green';
         else return 'lightgrey';
       })
-      .attr('opacity',function(d){
-        if(d.date==currentDate) return 0.75;
-        else return 0.5;})
-      .transition()
       .attr('r', function(d){
         if(d.date==currentDate) return 10;
         else return 4;
-      });
+      })
+      .attr('opacity',function(d){
+        if(d.date==currentDate) return 0.75;
+        else return 0.5;});
+      
 
     // if filtered dataset has more circles than already existing, transition new ones in
     locations.enter()
@@ -259,7 +264,7 @@ function get_dy(index){
       .attr('cy', function (d) { return get_xy(d.appOpens/Math.max(d.activeUsers,1)+shift,uniqueListOfCountries.indexOf(d.country),radius,max)[1];})
       .attr('r', 8)
       .attr('fill', function(d){
-        if(d.date==currentDate) return 'red';
+        if(d.date==currentDate) return 'green';
         else return 'lightgrey';
       })
       //.append('title').text(d => d.country + ": "+d.date+ "\n"+d.appOpens/Math.max(d.activeUsers,1))
@@ -267,8 +272,8 @@ function get_dy(index){
       .on("mouseout", mouseout)
       //.on("click", openScatterplot)
       .transition()
-      .duration(400)
-      .attr("r", 25)
+      .duration(200)
+      .attr('r', 15)
       .transition()
       .attr('r', function(d){
         if(d.date==currentDate) return 10;
@@ -280,12 +285,11 @@ function get_dy(index){
       .on("end", function(){
         d3.select(this).append('title').text(d => d.country + ": "+d.date+ "\n"+d.appOpens/Math.max(d.activeUsers,1));
       });
-      
 
-
-    // if filtered dataset has less circles than already existing, grey excess
+    // if filtered dataset has less circles than already existing, remove
     locations.exit()
     .remove();
+    
 
     function mouseover () {
       const avgUsers = d3.select(this).node();
@@ -321,15 +325,214 @@ function get_dy(index){
   }
 
   function updateRadial() {
-    const date = new Date(label.text());
-    newData = data.filter(data => data.date <= formatDateForData(date));
+    const date = formatDateForData(new Date(label.text()));
+    newData = data.filter(data => data.date <= date);
+    d3.selectAll('.cloud').remove();
     plotDataCircles(newData);
+    for(item of newData.filter(newData => newData.date==date)){
+      createCloudChart(item);
+    }
   }
-          
 
+  function createCloudChart(item){
+    // let newData = data.filter(data => data.date == "2019-02-15").filter(function(d){ return d.activeUsers != 0 });
+    // specify svg width and height;
+    const cloudWidth = Math.ceil(((item['swipes']+item['messages'])/10)), cloudHeight = Math.ceil(((item['swipes']+item['messages'])/10));
+    const listenTo = Math.min(cloudWidth, cloudHeight);
+    // create svg and g DOM elements;
+    //let coord=get_xy(item['appOpens']/Math.max(item['activeUsers'],1)+shift,uniqueListOfCountries.indexOf(item['country']),radius,max);
+    var coord = get_xy(max+shift*3, uniqueListOfCountries.indexOf(item['country']), radius, max);
+    let cloud = svg
+      .attr('xmlns', 'http://www.w3.org/2000/svg')
+      .attr('width', listenTo)
+      .attr('height', listenTo)
+      .append('g')
+      .attr('class', 'cloud')
+      .attr('transform', `translate(${coord[0]}, ${coord[1]})`);
+
+    var images = [], numSwipes = Math.floor(item['swipes']/10), swipeRem=Math.ceil(item['swipes']%10), numMsg = Math.floor(item['messages']/10), msgRem=Math.ceil(item['messages']%10),maxImages = numSwipes+numMsg, padding=1;
+    var msgIconPath= "https://kersten16.github.io/InfoVis/docs/icons/message.png";
+    var swipeIconPath = "https://kersten16.github.io/InfoVis/docs/icons/thumbs-up.png";
+    //console.log(numMsg, numSwipes, swipeRem,msgRem);
+    for(let i = 0; i< maxImages; i++){
+      //const weight = 10;
+      
+      if(numSwipes>0){
+        images.push({
+          url:swipeIconPath,
+          weight:10
+        });
+        //console.log(swipeIconPath);
+        numSwipes-=1;
+      }
+      else if(numMsg>0){
+        //console.log("should be");
+        images.push({
+          url:msgIconPath,
+          weight:10
+        });
+        numMsg-=1;
+      } 
+    }
+    if(swipeRem>0){
+      images.push({
+        url:swipeIconPath,
+        weight:swipeRem
+      });
+    }
+    if(msgRem>0){
+      images.push({
+        url:msgIconPath,
+        weight:msgRem
+      });
+    }
+  
+    //images.sort((a, b) => b.weight - a.weight);
+  
+  
+    // function to scale the images
+    const scaleSize = d3.scaleLinear().domain([1,4 ]).range([1, 4]).clamp(true);
+    // append the icons
+    let vizImages = cloud.selectAll('.image-cloud-image')
+      .data(images)
+      .enter()
+      .append('svg:image')
+      .attr('class', '.image-cloud-image')
+      .attr('height', d => scaleSize(d.weight))
+      .attr('width', d => scaleSize(d.weight))
+      .attr('id', d => d.url)
+      .attr('href',  d => d.url);
+      vizImages.exit().remove();
+
+    
+      // create the collection of forces
+const simulation = d3.forceSimulation()
+// set the nodes for the simulation to be our images
+.nodes(images)
+// set the function that will update the view on each 'tick'
+.on('tick', ticked)
+.force('center', d3.forceCenter())
+.force('cramp', d3.forceManyBody().strength(5))
+// collition force for rects
+.force('collide', rectCollide().size(d=> {
+const s = scaleSize(d.weight);
+return [s + padding, s + padding];
+}));
+
+// update the position to new x and y
+function ticked() {
+vizImages.attr('x', d => d.x).attr('y', d=> d.y);
 }
 
+// Rect collition algorithm. i don't know exactly how it works
+// https://bl.ocks.org/cmgiven/547658968d365bcc324f3e62e175709b
+function rectCollide() {
+  var nodes, sizes, masses
+  var size = constant([0, 0])
+  var strength = 1
+  var iterations = 3
 
+  function force() {
+      var node, size, mass, xi, yi
+      var i = -1
+      while (++i < iterations) { iterate() }
+
+      function iterate() {
+          var j = -1
+          var tree = d3.quadtree(nodes, xCenter, yCenter).visitAfter(prepare)
+
+          while (++j < nodes.length) {
+              node = nodes[j]
+              size = sizes[j]
+              mass = masses[j]
+              xi = xCenter(node)
+              yi = yCenter(node)
+
+              tree.visit(apply)
+          }
+      }
+
+      function apply(quad, x0, y0, x1, y1) {
+          var data = quad.data
+          var xSize = (size[0] + quad.size[0]) / 2
+          var ySize = (size[1] + quad.size[1]) / 2
+          if (data) {
+              if (data.index <= node.index) { return }
+
+              var x = xi - xCenter(data)
+              var y = yi - yCenter(data)
+              var xd = Math.abs(x) - xSize
+              var yd = Math.abs(y) - ySize
+
+              if (xd < 0 && yd < 0) {
+                  var l = Math.sqrt(x * x + y * y)
+                  var m = masses[data.index] / (mass + masses[data.index])
+
+                  if (Math.abs(xd) < Math.abs(yd)) {
+                      node.vx -= (x *= xd / l * strength) * m
+                      data.vx += x * (1 - m)
+                  } else {
+                      node.vy -= (y *= yd / l * strength) * m
+                      data.vy += y * (1 - m)
+                  }
+              }
+          }
+
+          return x0 > xi + xSize || y0 > yi + ySize ||
+                 x1 < xi - xSize || y1 < yi - ySize
+      }
+
+      function prepare(quad) {
+          if (quad.data) {
+              quad.size = sizes[quad.data.index]
+          } else {
+              quad.size = [0, 0]
+              var i = -1
+              while (++i < 4) {
+                  if (quad[i] && quad[i].size) {
+                      quad.size[0] = Math.max(quad.size[0], quad[i].size[0])
+                      quad.size[1] = Math.max(quad.size[1], quad[i].size[1])
+                  }
+              }
+          }
+      }
+  }
+
+  function xCenter(d) { return d.x + d.vx + sizes[d.index][0] / 2 }
+  function yCenter(d) { return d.y + d.vy + sizes[d.index][1] / 2 }
+
+  force.initialize = function (_) {
+      sizes = (nodes = _).map(size)
+      masses = sizes.map(function (d) { return d[0] * d[1] })
+  }
+
+  force.size = function (_) {
+      return (arguments.length
+           ? (size = typeof _ === 'function' ? _ : constant(_), force)
+           : size)
+  }
+
+  force.strength = function (_) {
+      return (arguments.length ? (strength = +_, force) : strength)
+  }
+
+  force.iterations = function (_) {
+      return (arguments.length ? (iterations = +_, force) : iterations)
+  }
+
+  return force
+}
+function constant(_) {
+  return function () { return _ }
+}
+      
+            
+  }
+
+  }
+
+    
+  
 
 
 // const createBarChart = (data, colors) => {

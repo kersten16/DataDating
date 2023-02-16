@@ -257,7 +257,8 @@ let uniqueListOfCountries= [];
         })
         .attr('opacity',function(d){
           if(d.date==currentDate) return 0.75;
-          else return 0.5;});
+          else return 0.5;})
+        .attr('stroke-width',2);
         
 
       // if filtered dataset has more circles than already existing, transition new ones in

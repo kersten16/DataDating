@@ -11,525 +11,545 @@ const width = 1600;
 let uniqueListOfCountries= [];
 
 // Load the dataset and formatting variables
-d3.json("data/allDates_ByCountry.json", d => {
-  return {
-    date:d[i].date,
-    country:d[i].country,
-    users: d[i].activeUsers,
-    appOpens: d[i].appOpens,
-    swipes : d[i].swipes,
-    messages : d[i].messages
-  }
-}).then(datingData => {
-  // We need to make sure that the data are sorted correctly by date and then by average app opens
-  datingData = datingData.sort((a, b) => d3.ascending(a.date, b.date)|| d3.ascending(a.country, b.country));
-  var listOfCountries = datingData.map(d => d.country);
-  uniqueListOfCountries = [...new Set(listOfCountries).values()];
-    //a.appOpens/(Math.max(a.activeUsers,1)),b.appOpens/(Math.max(b.activeUsers,1))));
-  createVisual(datingData);
-  //createTimeLine(data);
-})
-/***********************************CREATE TIMELINE **************************************/
-function createVisual(data){
-    var startDate = new Date(data[0].date),
-    endDate = new Date(data[data.length-1].date);
-    const totalDays=(endDate.getTime() - startDate.getTime()) / (1000 * 3600 * 24);
-    //console.log(startDate, endDate)
-
-  var timelineMargin = { top: 50, right: 50, bottom: 0, left: 50 },
-    timelineWidth = 2*width/3 - timelineMargin.left - timelineMargin.right,
-    timelineHeight = 200 - timelineMargin.top - timelineMargin.bottom;
-
-  var svg = d3.select("#timeLine")
-    .append("svg")
-    .attr("width", timelineWidth + timelineMargin.left + timelineMargin.right)
-    .attr("height", timelineHeight + timelineMargin.top + timelineMargin.bottom);
-    //.attr('transform', 'translate(' + (timelineMargin.left-(width)/2) + ',' + 0 + ')');
-//FIX ALIGNMENT ISSUES
-  ////////// slider //////////
-
-  var moving = false;
-  var currentValue = 0;
-  var targetValue = timelineWidth;
-
-  var playButton = d3.select("#play-button");
-  playButton.attr('class', 'position-absolute top-100 start-50');
-
-  var timeX = d3.scaleTime()
-    .domain([startDate, endDate])
-    .range([0, targetValue])
-    .clamp(true);
-
-  var slider = svg.append("g")
-    .attr("class", "slider")
-    .attr("transform", "translate(" + timelineMargin.left + "," + timelineHeight / 5 + ")");
-
-  slider.append("line")
-    .attr("class", "track")
-    .attr("x1", timeX.range()[0])
-    .attr("x2", timeX.range()[1])
-    .select(function () { return this.parentNode.appendChild(this.cloneNode(true)); })
-    .attr("class", "track-inset")
-    .select(function () { return this.parentNode.appendChild(this.cloneNode(true)); })
-    .attr("class", "track-overlay")
-    .call(d3.drag()
-      .on("start.interrupt", function () { slider.interrupt(); })
-      .on("start drag", function (e) {
-        currentValue = e.x;
-        updateSlider(timeX.invert(currentValue));
-      })
-    );
-
-  slider.insert("g", ".track-overlay")
-    .attr("class", "ticks")
-    .attr("transform", "translate(0," + 18 + ")")
-    .selectAll("text")
-    .data(timeX.ticks(10))
-    .enter()
-    .append("text")
-    .attr("x", timeX)
-    .attr("y", 10)
-    .attr("text-anchor", "middle")
-    .text(function (d) { return formatDateIntoMonth(d); });
-
-  var handle = slider.insert("circle", ".track-overlay")
-    .attr("class", "handle")
-    .attr("r", 9);
-
-  var label = slider.append("text")
-    .attr("class", "label")
-    .attr("text-anchor", "middle")
-    .text(formatDate(startDate))
-    .attr("transform", "translate(0," + (-15) + ")")
-
-    playButton
-      .on("click", function () {
-        var button = d3.select(this);
-        if (button.text() == "Pause") {
-          moving = false;
-          clearInterval(timer);
-          // timer = 0;
-          button.text("Play");
-        } else {
-          moving = true;
-          timer = setInterval(step, 1000);
-          button.text("Pause");
-        }
-      });
-
-  function step() {
-    updateSlider(timeX.invert(currentValue));
-    currentValue = currentValue + (targetValue /totalDays );
-    if (currentValue > targetValue) {
-      moving = false;
-      currentValue = 0;
-      clearInterval(timer);
-      // timer = 0;
-      playButton.text("Play");
+  d3.json("data/allDates_Combined.json", d => {
+    return {
+      date:d[i].date,
+      country:d[i].country,
+      daysSince: d[i].daysSince,
+      category: d[i].category,
+      measure: d[i].measure,
+      users: d[i].activeUsers,
+      appOpens: d[i].appOpens,
+      swipes : d[i].swipes,
+      messages : d[i].messages
     }
-  }
+  }).then(datingData => {
+    // We need to make sure that the data are sorted correctly by date and then by average app opens
+    datingData = datingData.sort((a, b) => d3.ascending(a.date, b.date)|| d3.ascending(a.country, b.country));
+    var listOfCountries = datingData.map(d => d.country);
+    uniqueListOfCountries = [...new Set(listOfCountries).values()];
+      //a.appOpens/(Math.max(a.activeUsers,1)),b.appOpens/(Math.max(b.activeUsers,1))));
+    createVisual(datingData);
+    //createTimeLine(data);
+  });
 
-  function updateSlider(h) {
-    // update position and text of label according to slider scale
-    handle.attr("cx", timeX(h));
-    label
-      .attr("x", timeX(h))
-      .text(formatDate(h));
-    // filter data set and redraw plot
-    //console.log(formatDateForData(h))
-    //d3.select('#radial').select('svg').remove()
-    updateRadial();
-  }
-/***************************************CREATE RADIAL GRAPH*********************************************/
+  /***********************************CREATE TIMELINE **************************************/
+  function createVisual(datingData, covidData){
+      var startDate = new Date(datingData[0].date),
+      endDate = new Date(datingData[datingData.length-1].date);
+      const totalDays=(endDate.getTime() - startDate.getTime()) / (1000 * 3600 * 24);
+      //console.log(startDate, endDate)
 
-  function rotated(i){
-    var rotated_i = parseInt(i) -1;
-    if(rotated_i >= uniqueListOfCountries.length){
-        rotated_i = i - uniqueListOfCountries.length;
+    var timelineMargin = { top: 50, right: 50, bottom: 0, left: 50 },
+      timelineWidth = 2*width/3 - timelineMargin.left - timelineMargin.right,
+      timelineHeight = 200 - timelineMargin.top - timelineMargin.bottom;
+
+    var svg = d3.select("#timeLine")
+      .append("svg")
+      .attr("width", timelineWidth + timelineMargin.left + timelineMargin.right)
+      .attr("height", timelineHeight + timelineMargin.top + timelineMargin.bottom);
+      //.attr('transform', 'translate(' + (timelineMargin.left-(width)/2) + ',' + 0 + ')');
+  //FIX ALIGNMENT ISSUES
+    ////////// slider //////////
+
+    var moving = false;
+    var currentValue = 0;
+    var targetValue = timelineWidth;
+
+    var playButton = d3.select("#play-button");
+    playButton.attr('class', 'position-absolute top-100 start-50');
+
+    var timeX = d3.scaleTime()
+      .domain([startDate, endDate])
+      .range([0, targetValue])
+      .clamp(true);
+
+    var slider = svg.append("g")
+      .attr("class", "slider")
+      .attr("transform", "translate(" + timelineMargin.left + "," + timelineHeight / 5 + ")");
+
+    slider.append("line")
+      .attr("class", "track")
+      .attr("x1", timeX.range()[0])
+      .attr("x2", timeX.range()[1])
+      .select(function () { return this.parentNode.appendChild(this.cloneNode(true)); })
+      .attr("class", "track-inset")
+      .select(function () { return this.parentNode.appendChild(this.cloneNode(true)); })
+      .attr("class", "track-overlay")
+      .call(d3.drag()
+        .on("start.interrupt", function () { slider.interrupt(); })
+        .on("start drag", function (e) {
+          currentValue = e.x;
+          updateSlider(timeX.invert(currentValue));
+        })
+      );
+
+    slider.insert("g", ".track-overlay")
+      .attr("class", "ticks")
+      .attr("transform", "translate(0," + 18 + ")")
+      .selectAll("text")
+      .data(timeX.ticks(10))
+      .enter()
+      .append("text")
+      .attr("x", timeX)
+      .attr("y", 10)
+      .attr("text-anchor", "middle")
+      .text(function (d) { return formatDateIntoMonth(d); });
+
+    var handle = slider.insert("circle", ".track-overlay")
+      .attr("class", "handle")
+      .attr("r", 9);
+
+    var label = slider.append("text")
+      .attr("class", "label")
+      .attr("text-anchor", "middle")
+      .text(formatDate(startDate))
+      .attr("transform", "translate(0," + (-15) + ")")
+
+      playButton
+        .on("click", function () {
+          var button = d3.select(this);
+          if (button.text() == "Pause") {
+            moving = false;
+            clearInterval(timer);
+            // timer = 0;
+            button.text("Play");
+          } else {
+            moving = true;
+            timer = setInterval(step, 1000);
+            button.text("Pause");
+          }
+        });
+
+    function step() {
+      updateSlider(timeX.invert(currentValue));
+      currentValue = currentValue + (targetValue /totalDays );
+      if (currentValue > targetValue) {
+        moving = false;
+        currentValue = 0;
+        clearInterval(timer);
+        // timer = 0;
+        playButton.text("Play");
+      }
     }
-    else if(rotated_i < 0) {
-        rotated_i = uniqueListOfCountries.length - 1 + parseInt(i);
+
+    function updateSlider(h) {
+      // update position and text of label according to slider scale
+      handle.attr("cx", timeX(h));
+      label
+        .attr("x", timeX(h))
+        .text(formatDate(h));
+      // filter data set and redraw plot
+      //console.log(formatDateForData(h))
+      //d3.select('#radial').select('svg').remove()
+      updateRadial();
     }
-    return rotated_i
-}
+  /***************************************CREATE RADIAL GRAPH*********************************************/
 
-function to_radian(i){
-    return i * 2 * Math.PI / uniqueListOfCountries.length;
-}
-
-function get_xy(value, index, radius, max){
-  var center_y = radius;
-  var center_x = radius/2;
-    var length = radius * value / max;
-    y = center_y - length * Math.cos(to_radian(rotated(index)));
-    x = center_x + length * Math.sin(to_radian(rotated(index)));
-    return [x, y];
-}
-
-function get_anchor(i){
-    if(rotated(i) == 0 | rotated(i) == uniqueListOfCountries.length / 2){
-        return 'middle';
-    }
-    else if(rotated(i) < uniqueListOfCountries.length / 2){
-        return 'start';
-    }
-    else{
-        return 'end';
-    }
-}
-
-function get_dy(index){
-  var dy = -3 * Math.cos(to_radian(rotated(index)));
-  dy += 3;
-  if(rotated(index) == 0){
-    dy -= 4;
-  }
-  return dy;
-}
-
-/************************** MAKE RADIAL CHART *******************************/
-  var max= 300;
-  var ticks= (max/10)+1
-  var radius = 600;
-  var shift = max / ticks;
-  var startDate=(data[0]["date"]);
-  let newData = data.filter(data => data.date == startDate);
-  var svg = d3.select('#radial').append('svg')
-  .attr('width', width + margin.left + margin.right)
-  .attr('height', height + margin.top + margin.bottom)
-  .attr('transform', 'translate(' + -250+ ',0)')
-  .append('g')
-  .attr('transform', 'translate(' + (radius-150)+ ',' + 100 + ')');
-  
-
-  for(i in uniqueListOfCountries){
-    
-    var country = uniqueListOfCountries[i];
-    var start = get_xy(max / ticks, i, radius, max); //create a donut
-    var end = get_xy(max+shift, i, radius, max);
-
-    svg.append('line')
-        .attr('x1', start[0])
-        .attr('y1', start[1])
-        .attr('x2', end[0])
-        .attr('y2', end[1])
-        .style('stroke', 'lightgrey')
-        .style('stroke-width', 0.5);
-
-
-    var plabel = get_xy((max+shift) * 1.1, i, radius,max);
-
-    svg.append('text')
-        .attr('x', plabel[0])
-        .attr('y', plabel[1])
-        .attr('dy', function(){return get_dy(i)})
-        .attr('text-anchor', get_anchor(i))
-        .attr('class', 'label')
-        .text(country)
-        .style('font-size', '20px');
-  }
-  plotDataCircles(newData);
-  for(item of newData.filter(newData => newData.date==date)){
-    createCloudChart(item);
+    function rotated(i){
+      var rotated_i = parseInt(i) -1;
+      if(rotated_i >= uniqueListOfCountries.length){
+          rotated_i = i - uniqueListOfCountries.length;
+      }
+      else if(rotated_i < 0) {
+          rotated_i = uniqueListOfCountries.length - 1 + parseInt(i);
+      }
+      return rotated_i
   }
 
-  
-/**********************************HANDLE DATA UPDATES************************************/
-  function plotDataCircles(newData){
+  function to_radian(i){
+      return i * 2 * Math.PI / uniqueListOfCountries.length;
+  }
+
+  function get_xy(value, index, radius, max){
+    var center_y = radius;
+    var center_x = radius/2;
+      var length = radius * value / max;
+      y = center_y - length * Math.cos(to_radian(rotated(index)));
+      x = center_x + length * Math.sin(to_radian(rotated(index)));
+      return [x, y];
+  }
+
+  function get_anchor(i){
+      if(rotated(i) == 0 | rotated(i) == uniqueListOfCountries.length / 2){
+          return 'middle';
+      }
+      else if(rotated(i) < uniqueListOfCountries.length / 2){
+          return 'start';
+      }
+      else{
+          return 'end';
+      }
+  }
+
+  function get_dy(index){
+    var dy = -3 * Math.cos(to_radian(rotated(index)));
+    dy += 3;
+    if(rotated(index) == 0){
+      dy -= 4;
+    }
+    return dy;
+  }
+
+  /************************** MAKE RADIAL CHART *******************************/
     var max= 300;
+    var ticks= (max/10)+1
     var radius = 600;
-    var currentDate = formatDateForData(new Date(label.text()));
-    var locations = svg.selectAll(".location")
-      .data(newData);
-
-    locations
-      .attr('fill', function(d){
-        if(d.date==currentDate) return 'green';
-        else return 'lightgrey';
-      })
-      .attr('r', function(d){
-        if(d.date==currentDate) return 10;
-        else return 4;
-      })
-      .attr('opacity',function(d){
-        if(d.date==currentDate) return 0.75;
-        else return 0.5;});
-      
-
-    // if filtered dataset has more circles than already existing, transition new ones in
-    locations.enter()
-      .append("circle")
-      .attr("class", "location")
-      .attr('cx', function (d) { return get_xy(d.appOpens/Math.max(d.activeUsers,1)+shift,uniqueListOfCountries.indexOf(d.country),radius,max)[0];})
-      .attr('cy', function (d) { return get_xy(d.appOpens/Math.max(d.activeUsers,1)+shift,uniqueListOfCountries.indexOf(d.country),radius,max)[1];})
-      .attr('r', 8)
-      .attr('fill', function(d){
-        if(d.date==currentDate) return 'green';
-        else return 'lightgrey';
-      })
-      //.append('title').text(d => d.country + ": "+d.date+ "\n"+d.appOpens/Math.max(d.activeUsers,1))
-      .on("mouseover", mouseover)
-      .on("mouseout", mouseout)
-      //.on("click", openScatterplot)
-      .transition()
-      .duration(200)
-      .attr('r', 15)
-      .transition()
-      .attr('r', function(d){
-        if(d.date==currentDate) return 10;
-        else return 4;
-      })
-      .attr('opacity',function(d){
-        if(d.date==currentDate) return 0.75;
-        else return 0.5;})
-      .on("end", function(){
-        d3.select(this).append('title').text(d => d.country + ": "+d.date+ "\n"+d.appOpens/Math.max(d.activeUsers,1));
-      });
-
-    // if filtered dataset has less circles than already existing, remove
-    locations.exit()
-    .remove();
+    var shift = max / ticks;
+    var startDate=(datingData[0]["date"]);
+    let filteredDatingData = datingData.filter(data => data.date == startDate);
+    var svg = d3.select('#radial').append('svg')
+    .attr('width', width + margin.left + margin.right)
+    .attr('height', height + margin.top + margin.bottom)
+    .attr('transform', 'translate(' + -250+ ',0)')
+    .append('g')
+    .attr('transform', 'translate(' + (radius-150)+ ',' + 100 + ')');
     
 
-    function mouseover () {
-      const avgUsers = d3.select(this).node();
-      // if(d3.select(this).data==formatDateForData(currentDate)){
+    for(i in uniqueListOfCountries){
+      
+      var country = uniqueListOfCountries[i];
+      var start = get_xy(max / ticks, i, radius, max); //create a donut
+      var end = get_xy(max+shift, i, radius, max);
 
-      // }
-        d3.select(this)
-          .raise();
-          
+      svg.append('line')
+          .attr('x1', start[0])
+          .attr('y1', start[1])
+          .attr('x2', end[0])
+          .attr('y2', end[1])
+          .style('stroke', 'lightgrey')
+          .style('stroke-width', 0.5);
 
-        d3.select(this)
-          .attr("stroke", "#333")
-          .attr("stroke-width", 2)
-          .attr('opacity', 1);  
-       };
-     
-       function mouseout () {
-        var currentDate = formatDateForData(new Date(label.text()));
-        //const avgUsers = d3.select(this).node();
-          if(!d3.select(this).select('title').text().includes(currentDate)){
-            d3.select(this)
-              .lower();
-            }
 
-         d3.select(this)
-           .attr("stroke", null)
-           .attr('opacity',function(d){
-            if(d.date==currentDate) return 0.75;
-            else return 0.5;});
+      var plabel = get_xy((max+shift) * 1.1, i, radius,max);
 
-       };
- 
-  }
-
-  function updateRadial() {
-    const date = formatDateForData(new Date(label.text()));
-    newData = data.filter(data => data.date <= date);
-    d3.selectAll('.cloud').remove();
-    plotDataCircles(newData);
-    for(item of newData.filter(newData => newData.date==date)){
+      svg.append('text')
+          .attr('x', plabel[0])
+          .attr('y', plabel[1])
+          .attr('dy', function(){return get_dy(i)})
+          .attr('text-anchor', get_anchor(i))
+          .attr('class', 'label')
+          .text(country)
+          .style('font-size', '20px');
+    }
+    plotDataCircles(filteredDatingData);
+    for(item of filteredDatingData.filter(newData => newData.date==date)){
       createCloudChart(item);
     }
-  }
-
-  function createCloudChart(item){
-    // let newData = data.filter(data => data.date == "2019-02-15").filter(function(d){ return d.activeUsers != 0 });
-    // specify svg width and height;
-    const cloudWidth = Math.ceil(((item['swipes']+item['messages'])/10)), cloudHeight = Math.ceil(((item['swipes']+item['messages'])/10));
-    const listenTo = Math.min(cloudWidth, cloudHeight);
-    // create svg and g DOM elements;
-    //let coord=get_xy(item['appOpens']/Math.max(item['activeUsers'],1)+shift,uniqueListOfCountries.indexOf(item['country']),radius,max);
-    var coord = get_xy(max+shift*3, uniqueListOfCountries.indexOf(item['country']), radius, max);
-    let cloud = svg
-      .attr('xmlns', 'http://www.w3.org/2000/svg')
-      .attr('width', listenTo)
-      .attr('height', listenTo)
-      .append('g')
-      .attr('class', 'cloud')
-      .attr('transform', `translate(${coord[0]}, ${coord[1]})`);
-
-    var images = [], numSwipes = Math.floor(item['swipes']/10), swipeRem=Math.ceil(item['swipes']%10), numMsg = Math.floor(item['messages']/10), msgRem=Math.ceil(item['messages']%10),maxImages = numSwipes+numMsg, padding=1;
-    var msgIconPath= "https://kersten16.github.io/InfoVis/docs/icons/message.png";
-    var swipeIconPath = "https://kersten16.github.io/InfoVis/docs/icons/thumbs-up.png";
-    //console.log(numMsg, numSwipes, swipeRem,msgRem);
-    for(let i = 0; i< maxImages; i++){
-      //const weight = 10;
-      
-      if(numSwipes>0){
-        images.push({
-          url:swipeIconPath,
-          weight:10
-        });
-        //console.log(swipeIconPath);
-        numSwipes-=1;
-      }
-      else if(numMsg>0){
-        //console.log("should be");
-        images.push({
-          url:msgIconPath,
-          weight:10
-        });
-        numMsg-=1;
-      } 
-    }
-    if(swipeRem>0){
-      images.push({
-        url:swipeIconPath,
-        weight:swipeRem
-      });
-    }
-    if(msgRem>0){
-      images.push({
-        url:msgIconPath,
-        weight:msgRem
-      });
-    }
-  
-    //images.sort((a, b) => b.weight - a.weight);
-  
-  
-    // function to scale the images
-    const scaleSize = d3.scaleLinear().domain([1,4 ]).range([1, 4]).clamp(true);
-    // append the icons
-    let vizImages = cloud.selectAll('.image-cloud-image')
-      .data(images)
-      .enter()
-      .append('svg:image')
-      .attr('class', '.image-cloud-image')
-      .attr('height', d => scaleSize(d.weight))
-      .attr('width', d => scaleSize(d.weight))
-      .attr('id', d => d.url)
-      .attr('href',  d => d.url);
-      vizImages.exit().remove();
 
     
-      // create the collection of forces
-const simulation = d3.forceSimulation()
-// set the nodes for the simulation to be our images
-.nodes(images)
-// set the function that will update the view on each 'tick'
-.on('tick', ticked)
-.force('center', d3.forceCenter())
-.force('cramp', d3.forceManyBody().strength(5))
-// collition force for rects
-.force('collide', rectCollide().size(d=> {
-const s = scaleSize(d.weight);
-return [s + padding, s + padding];
-}));
+  /**********************************HANDLE DATA UPDATES************************************/
+    function plotDataCircles(filteredDatingData){
+      var max= 300;
+      var radius = 600;
+      var currentDate = formatDateForData(new Date(label.text()));
+      var locations = svg.selectAll(".location")
+        .data(filteredDatingData);
 
-// update the position to new x and y
-function ticked() {
-vizImages.attr('x', d => d.x).attr('y', d=> d.y);
-}
+      locations
+        .attr('fill', function(d){
+          if(d.date==currentDate) return 'green';
+          else return 'lightgrey';
+        })
+        .attr('r', function(d){
+          if(d.date==currentDate) return 10;
+          else return 4;
+        })
+        .attr('opacity',function(d){
+          if(d.date==currentDate) return 0.75;
+          else return 0.5;});
+        
 
-// Rect collition algorithm. i don't know exactly how it works
-// https://bl.ocks.org/cmgiven/547658968d365bcc324f3e62e175709b
-function rectCollide() {
-  var nodes, sizes, masses
-  var size = constant([0, 0])
-  var strength = 1
-  var iterations = 3
-
-  function force() {
-      var node, size, mass, xi, yi
-      var i = -1
-      while (++i < iterations) { iterate() }
-
-      function iterate() {
-          var j = -1
-          var tree = d3.quadtree(nodes, xCenter, yCenter).visitAfter(prepare)
-
-          while (++j < nodes.length) {
-              node = nodes[j]
-              size = sizes[j]
-              mass = masses[j]
-              xi = xCenter(node)
-              yi = yCenter(node)
-
-              tree.visit(apply)
+      // if filtered dataset has more circles than already existing, transition new ones in
+      locations.enter()
+        .append("circle")
+        .attr("class", "location")
+        .attr('cx', function (d) { return get_xy(d.appOpens/Math.max(d.activeUsers,1)+shift,uniqueListOfCountries.indexOf(d.country),radius,max)[0];})
+        .attr('cy', function (d) { return get_xy(d.appOpens/Math.max(d.activeUsers,1)+shift,uniqueListOfCountries.indexOf(d.country),radius,max)[1];})
+        .attr('r', 8)
+        .attr('fill', function(d){
+          if(d.date==currentDate) return 'green';
+          else return 'lightgrey';
+        })
+        .attr('stroke', function(d){
+          if(d.daysSince==0){
+            return '#e31010';
+          }else if(d.daysSince<=7){
+            return '#ed8224';
+          }else if(d.daysSince<=14){
+            return '#f5a11b';
+          }else if (d.daysSince<=21){
+            return '#fcc326';
+          }else if (d.daysSince<=28){
+            return '#f5df3d';
+          }else{
+            return 'lightgrey';
           }
-      }
+        })
+        .attr('stroke-width',3)
+        //.append('title').text(d => d.country + ": "+d.date+ "\n"+d.appOpens/Math.max(d.activeUsers,1))
+        .on("mouseover", mouseover)
+        .on("mouseout", mouseout)
+        //.on("click", openScatterplot)
+        .transition()
+        .duration(200)
+        .attr('r', 15)
+        .transition()
+        .attr('r', function(d){
+          if(d.date==currentDate) return 10;
+          else return 4;
+        })
+        .attr('opacity',function(d){
+          if(d.date==currentDate) return 0.75;
+          else return 0.5;})
+        .on("end", function(){
+          d3.select(this).append('title').text(d => d.country + ": "+d.date+ "\n"+d.appOpens/Math.max(d.activeUsers,1));
+        });
 
-      function apply(quad, x0, y0, x1, y1) {
-          var data = quad.data
-          var xSize = (size[0] + quad.size[0]) / 2
-          var ySize = (size[1] + quad.size[1]) / 2
-          if (data) {
-              if (data.index <= node.index) { return }
-
-              var x = xi - xCenter(data)
-              var y = yi - yCenter(data)
-              var xd = Math.abs(x) - xSize
-              var yd = Math.abs(y) - ySize
-
-              if (xd < 0 && yd < 0) {
-                  var l = Math.sqrt(x * x + y * y)
-                  var m = masses[data.index] / (mass + masses[data.index])
-
-                  if (Math.abs(xd) < Math.abs(yd)) {
-                      node.vx -= (x *= xd / l * strength) * m
-                      data.vx += x * (1 - m)
-                  } else {
-                      node.vy -= (y *= yd / l * strength) * m
-                      data.vy += y * (1 - m)
-                  }
-              }
-          }
-
-          return x0 > xi + xSize || y0 > yi + ySize ||
-                 x1 < xi - xSize || y1 < yi - ySize
-      }
-
-      function prepare(quad) {
-          if (quad.data) {
-              quad.size = sizes[quad.data.index]
-          } else {
-              quad.size = [0, 0]
-              var i = -1
-              while (++i < 4) {
-                  if (quad[i] && quad[i].size) {
-                      quad.size[0] = Math.max(quad.size[0], quad[i].size[0])
-                      quad.size[1] = Math.max(quad.size[1], quad[i].size[1])
-                  }
-              }
-          }
-      }
-  }
-
-  function xCenter(d) { return d.x + d.vx + sizes[d.index][0] / 2 }
-  function yCenter(d) { return d.y + d.vy + sizes[d.index][1] / 2 }
-
-  force.initialize = function (_) {
-      sizes = (nodes = _).map(size)
-      masses = sizes.map(function (d) { return d[0] * d[1] })
-  }
-
-  force.size = function (_) {
-      return (arguments.length
-           ? (size = typeof _ === 'function' ? _ : constant(_), force)
-           : size)
-  }
-
-  force.strength = function (_) {
-      return (arguments.length ? (strength = +_, force) : strength)
-  }
-
-  force.iterations = function (_) {
-      return (arguments.length ? (iterations = +_, force) : iterations)
-  }
-
-  return force
-}
-function constant(_) {
-  return function () { return _ }
-}
+      // if filtered dataset has less circles than already existing, remove
+      locations.exit()
+      .remove();
       
+
+      function mouseover () {
+        const avgUsers = d3.select(this).node();
+        // if(d3.select(this).data==formatDateForData(currentDate)){
+
+        // }
+          d3.select(this)
+            .raise();
             
+
+          d3.select(this)
+            .attr("stroke", "#333")
+            .attr("stroke-width", 2)
+            .attr('opacity', 1);  
+        };
+      
+        function mouseout () {
+          var currentDate = formatDateForData(new Date(label.text()));
+          //const avgUsers = d3.select(this).node();
+            if(!d3.select(this).select('title').text().includes(currentDate)){
+              d3.select(this)
+                .lower();
+              }
+
+          d3.select(this)
+            .attr("stroke", null)
+            .attr('opacity',function(d){
+              if(d.date==currentDate) return 0.75;
+              else return 0.5;});
+
+        };
+  
+    }
+
+    function updateRadial() {
+      const date = formatDateForData(new Date(label.text()));
+      filteredDatingData = datingData.filter(data => data.date <= date);
+      d3.selectAll('.cloud').remove();
+      plotDataCircles(filteredDatingData);
+      for(item of filteredDatingData.filter(newData => newData.date==date)){
+        createCloudChart(item);
+      }
+    }
+
+    function createCloudChart(item){
+      // let newData = data.filter(data => data.date == "2019-02-15").filter(function(d){ return d.activeUsers != 0 });
+      // specify svg width and height;
+      const cloudWidth = Math.ceil(((item['swipes']+item['messages'])/10)), cloudHeight = Math.ceil(((item['swipes']+item['messages'])/10));
+      const listenTo = Math.min(cloudWidth, cloudHeight);
+      // create svg and g DOM elements;
+      //let coord=get_xy(item['appOpens']/Math.max(item['activeUsers'],1)+shift,uniqueListOfCountries.indexOf(item['country']),radius,max);
+      var coord = get_xy(max+shift*3, uniqueListOfCountries.indexOf(item['country']), radius, max);
+      let cloud = svg
+        .attr('xmlns', 'http://www.w3.org/2000/svg')
+        .attr('width', listenTo)
+        .attr('height', listenTo)
+        .append('g')
+        .attr('class', 'cloud')
+        .attr('transform', `translate(${coord[0]}, ${coord[1]})`);
+
+      var images = [], numSwipes = Math.floor(item['swipes']/10), swipeRem=Math.ceil(item['swipes']%10), numMsg = Math.floor(item['messages']/10), msgRem=Math.ceil(item['messages']%10),maxImages = numSwipes+numMsg, padding=1;
+      var msgIconPath= "https://kersten16.github.io/InfoVis/docs/icons/message.png";
+      var swipeIconPath = "https://kersten16.github.io/InfoVis/docs/icons/thumbs-up.png";
+      //console.log(numMsg, numSwipes, swipeRem,msgRem);
+      for(let i = 0; i< maxImages; i++){
+        //const weight = 10;
+        
+        if(numSwipes>0){
+          images.push({
+            url:swipeIconPath,
+            weight:10
+          });
+          //console.log(swipeIconPath);
+          numSwipes-=1;
+        }
+        else if(numMsg>0){
+          //console.log("should be");
+          images.push({
+            url:msgIconPath,
+            weight:10
+          });
+          numMsg-=1;
+        } 
+      }
+      if(swipeRem>0){
+        images.push({
+          url:swipeIconPath,
+          weight:swipeRem
+        });
+      }
+      if(msgRem>0){
+        images.push({
+          url:msgIconPath,
+          weight:msgRem
+        });
+      }
+    
+      //images.sort((a, b) => b.weight - a.weight);
+    
+    
+      // function to scale the images
+      const scaleSize = d3.scaleLinear().domain([1,4 ]).range([1, 4]).clamp(true);
+      // append the icons
+      let vizImages = cloud.selectAll('.image-cloud-image')
+        .data(images)
+        .enter()
+        .append('svg:image')
+        .attr('class', '.image-cloud-image')
+        .attr('height', d => scaleSize(d.weight))
+        .attr('width', d => scaleSize(d.weight))
+        .attr('id', d => d.url)
+        .attr('href',  d => d.url);
+        vizImages.exit().remove();
+
+      
+        // create the collection of forces
+  const simulation = d3.forceSimulation()
+  // set the nodes for the simulation to be our images
+  .nodes(images)
+  // set the function that will update the view on each 'tick'
+  .on('tick', ticked)
+  .force('center', d3.forceCenter())
+  .force('cramp', d3.forceManyBody().strength(5))
+  // collition force for rects
+  .force('collide', rectCollide().size(d=> {
+  const s = scaleSize(d.weight);
+  return [s + padding, s + padding];
+  }));
+
+  // update the position to new x and y
+  function ticked() {
+  vizImages.attr('x', d => d.x).attr('y', d=> d.y);
   }
 
+  // Rect collition algorithm. i don't know exactly how it works
+  // https://bl.ocks.org/cmgiven/547658968d365bcc324f3e62e175709b
+  function rectCollide() {
+    var nodes, sizes, masses
+    var size = constant([0, 0])
+    var strength = 1
+    var iterations = 3
+
+    function force() {
+        var node, size, mass, xi, yi
+        var i = -1
+        while (++i < iterations) { iterate() }
+
+        function iterate() {
+            var j = -1
+            var tree = d3.quadtree(nodes, xCenter, yCenter).visitAfter(prepare)
+
+            while (++j < nodes.length) {
+                node = nodes[j]
+                size = sizes[j]
+                mass = masses[j]
+                xi = xCenter(node)
+                yi = yCenter(node)
+
+                tree.visit(apply)
+            }
+        }
+
+        function apply(quad, x0, y0, x1, y1) {
+            var data = quad.data
+            var xSize = (size[0] + quad.size[0]) / 2
+            var ySize = (size[1] + quad.size[1]) / 2
+            if (data) {
+                if (data.index <= node.index) { return }
+
+                var x = xi - xCenter(data)
+                var y = yi - yCenter(data)
+                var xd = Math.abs(x) - xSize
+                var yd = Math.abs(y) - ySize
+
+                if (xd < 0 && yd < 0) {
+                    var l = Math.sqrt(x * x + y * y)
+                    var m = masses[data.index] / (mass + masses[data.index])
+
+                    if (Math.abs(xd) < Math.abs(yd)) {
+                        node.vx -= (x *= xd / l * strength) * m
+                        data.vx += x * (1 - m)
+                    } else {
+                        node.vy -= (y *= yd / l * strength) * m
+                        data.vy += y * (1 - m)
+                    }
+                }
+            }
+
+            return x0 > xi + xSize || y0 > yi + ySize ||
+                  x1 < xi - xSize || y1 < yi - ySize
+        }
+
+        function prepare(quad) {
+            if (quad.data) {
+                quad.size = sizes[quad.data.index]
+            } else {
+                quad.size = [0, 0]
+                var i = -1
+                while (++i < 4) {
+                    if (quad[i] && quad[i].size) {
+                        quad.size[0] = Math.max(quad.size[0], quad[i].size[0])
+                        quad.size[1] = Math.max(quad.size[1], quad[i].size[1])
+                    }
+                }
+            }
+        }
+    }
+
+    function xCenter(d) { return d.x + d.vx + sizes[d.index][0] / 2 }
+    function yCenter(d) { return d.y + d.vy + sizes[d.index][1] / 2 }
+
+    force.initialize = function (_) {
+        sizes = (nodes = _).map(size)
+        masses = sizes.map(function (d) { return d[0] * d[1] })
+    }
+
+    force.size = function (_) {
+        return (arguments.length
+            ? (size = typeof _ === 'function' ? _ : constant(_), force)
+            : size)
+    }
+
+    force.strength = function (_) {
+        return (arguments.length ? (strength = +_, force) : strength)
+    }
+
+    force.iterations = function (_) {
+        return (arguments.length ? (iterations = +_, force) : iterations)
+    }
+
+    return force
   }
+  function constant(_) {
+    return function () { return _ }
+  }
+        
+              
+    }
+
+    }
 
     
   

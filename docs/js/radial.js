@@ -6,7 +6,7 @@ var formatDate = d3.timeFormat("%b %d %Y");
 var formatDateForData = d3.timeFormat("%Y-%m-%d")
 var parseDate = d3.timeParse("%m/%d/%y");
 var scatterPlotOpen = false;
-
+const delay = ms => new Promise(res => setTimeout(res, ms));
 var margin = {top: 50, right: 50, bottom: 50, left: 50},height = 1600;
 const width = 1600;
 let uniqueListOfCountries= [];
@@ -147,7 +147,7 @@ let uniqueListOfMeasures = [];
         .text(formatDate(h));
       // filter data set and redraw plot
 
-      d3.select('#radial').select('svg').remove()
+      //d3.select('#radial').select('svg').remove()
       if(scatterPlotOpen){
         updateScatter();
       }else{
@@ -215,7 +215,7 @@ let uniqueListOfMeasures = [];
     .attr('height', height + margin.top + margin.bottom)
     .attr('transform', 'translate(' + -250+ ',0)')
     .append('g')
-    .attr('transform', 'translate(' + (radius-150)+ ',' + 100 + ')');
+    .attr('transform', 'translate(' + (radius-130)+ ',' + 100 + ')');
     
 
     for(i in uniqueListOfCountries){
@@ -235,23 +235,48 @@ let uniqueListOfMeasures = [];
 
       var plabel = get_xy((max+shift) * 1.1, i, radius,max);
 
-      svg.append('text')
+      var textbox = svg.append('g')
+                 .attr('id',currCountry)
+      textbox.append('text')
           .attr('x', plabel[0])
           .attr('y', plabel[1])
           .attr('dy', function(){return get_dy(i)})
           .attr('text-anchor', get_anchor(i))
           .attr('class', 'label')
-          .attr('id',currCountry)
-          .on("mouseover", function(){
+          //.attr('id',currCountry)
+          .text(currCountry)
+          .style('font-size', '20px')
+      textbox.append('rect')
+          .raise()
+          .attr('x', function(){
+            if(get_anchor(i)=='end'){
+              return  plabel[0] - 130;
+            }
+            if(get_anchor(i)=='middle'){
+              return  plabel[0] - 50;
+            }
+            if(get_anchor(i)=='start'){
+              return  plabel[0] - 5;
+            }
+
+          })
+          .attr('y', function(){
+            return plabel[1]-20;
+
+          })
+          .attr('width', 150)
+          .attr('height', 50)
+          .attr('opacity', 0)
+          .on("mouseover", function(e){
             var date = formatDateForData(new Date(label.text()));
-            extrafilteredDatingData = datingData.filter(data => data.date == date).filter(newData => newData.country==this.id);
+            console.log(e.target.parentNode.id)
+            extrafilteredDatingData = datingData.filter(data => data.date == date).filter(newData => newData.country==e.target.parentNode.id);
             return createCloudChart(extrafilteredDatingData[0]);
           } )
-          .on("mouseout", function(){
-            
-            return d3.selectAll('.cloud').remove();})
-          .text(currCountry)
-          .style('font-size', '20px');
+          .on("mouseout", async function(){
+            await delay(2000);
+            return d3.selectAll('.cloud').remove();
+          });
           
     }
     plotDataCircles(filteredDatingData);

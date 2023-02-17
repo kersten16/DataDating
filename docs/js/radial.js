@@ -5,6 +5,7 @@ var formatDateIntoMonth = d3.timeFormat("%m/%y");
 var formatDate = d3.timeFormat("%b %d %Y");
 var formatDateForData = d3.timeFormat("%Y-%m-%d")
 var parseDate = d3.timeParse("%m/%d/%y");
+var scatterPlotOpen = false;
 
 var margin = {top: 50, right: 50, bottom: 50, left: 50},height = 1600;
 const width = 1600;
@@ -140,9 +141,14 @@ let uniqueListOfCountries= [];
         .attr("x", timeX(h))
         .text(formatDate(h));
       // filter data set and redraw plot
-      //console.log(formatDateForData(h))
+
       //d3.select('#radial').select('svg').remove()
-      updateRadial();
+      // if(scatterPlotOpen){
+      //   updateScatter();
+      // }else{
+        updateRadial();
+      //}
+        
     }
   /***************************************CREATE RADIAL GRAPH*********************************************/
 
@@ -208,7 +214,7 @@ let uniqueListOfCountries= [];
 
     for(i in uniqueListOfCountries){
       
-      var country = uniqueListOfCountries[i];
+      var currCountry = uniqueListOfCountries[i];
       var start = get_xy(max / ticks, i, radius, max); //create a donut
       var end = get_xy(max+shift, i, radius, max);
 
@@ -229,13 +235,23 @@ let uniqueListOfCountries= [];
           .attr('dy', function(){return get_dy(i)})
           .attr('text-anchor', get_anchor(i))
           .attr('class', 'label')
-          .text(country)
+          .attr('id',currCountry)
+          .on("mouseover", function(){
+            var date = formatDateForData(new Date(label.text()));
+            extrafilteredDatingData = datingData.filter(data => data.date == date).filter(newData => newData.country==this.id);
+            return createCloudChart(extrafilteredDatingData[0]);
+          } )
+          .on("mouseout", function(){
+            
+            return d3.selectAll('.cloud').remove();})
+          .text(currCountry)
           .style('font-size', '20px');
+          
     }
     plotDataCircles(filteredDatingData);
-    for(item of filteredDatingData.filter(newData => newData.date==date)){
-      createCloudChart(item);
-    }
+    // for(item of filteredDatingData.filter(newData => newData.date==date)){
+    //   createCloudChart(item);
+    // }
 
     
   /**********************************HANDLE DATA UPDATES************************************/
@@ -267,45 +283,44 @@ let uniqueListOfCountries= [];
         .attr("class", "location")
         .attr('cx', function (d) { return get_xy(d.appOpens/Math.max(d.activeUsers,1)+shift,uniqueListOfCountries.indexOf(d.country),radius,max)[0];})
         .attr('cy', function (d) { return get_xy(d.appOpens/Math.max(d.activeUsers,1)+shift,uniqueListOfCountries.indexOf(d.country),radius,max)[1];})
-        .attr('r', 8)
-        .attr('fill', function(d){
-          if(d.date==currentDate) return 'green';
-          else return 'lightgrey';
-        })
-        .attr('stroke', function(d){
-          if(d.daysSince==0){
-            return '#e31010';
-          }else if(d.daysSince<=7){
-            return '#ed8224';
-          }else if(d.daysSince<=14){
-            return '#f5a11b';
-          }else if (d.daysSince<=21){
-            return '#fcc326';
-          }else if (d.daysSince<=28){
-            return '#f5df3d';
-          }else{
-            return 'lightgrey';
-          }
-        })
-        .attr('stroke-width',3)
-        //.append('title').text(d => d.country + ": "+d.date+ "\n"+d.appOpens/Math.max(d.activeUsers,1))
-        .on("mouseover", mouseover)
-        .on("mouseout", mouseout)
-        //.on("click", openScatterplot)
-        .transition()
-        .duration(200)
-        .attr('r', 15)
-        .transition()
         .attr('r', function(d){
           if(d.date==currentDate) return 10;
           else return 4;
         })
+        .attr('fill', function(d){
+          if(d.date==currentDate) return 'green';
+          else return 'lightgrey';
+        })
         .attr('opacity',function(d){
           if(d.date==currentDate) return 0.75;
           else return 0.5;})
-        .on("end", function(){
-          d3.select(this).append('title').text(d => d.country + ": "+d.date+ "\n"+d.appOpens/Math.max(d.activeUsers,1));
-        });
+        // .attr('stroke', function(d){
+        //   if(d.daysSince==0){
+        //     return '#e31010';
+        //   }else if(d.daysSince<=7){
+        //     return '#ed8224';
+        //   }else if(d.daysSince<=14){
+        //     return '#f5a11b';
+        //   }else if (d.daysSince<=21){
+        //     return '#fcc326';
+        //   }else if (d.daysSince<=28){
+        //     return '#f5df3d';
+        //   }else{
+        //     return 'lightgrey';
+        //   }
+        // })
+        //.attr('stroke-width',3)
+        //.append('title').text(d => d.country + ": "+d.date+ "\n"+d.appOpens/Math.max(d.activeUsers,1))
+        .on("mouseover", mouseover)
+        .on("mouseout", mouseout)
+        //.on("click", openScatterplot())
+        //.transition()
+        // .duration(200)
+        // .attr('r', 15)
+         .transition()
+         .on("end", function(){
+           d3.select(this).append('title').text(d => d.country + ": "+d.date+ "\n"+d.appOpens/Math.max(d.activeUsers,1));
+         });
 
       // if filtered dataset has less circles than already existing, remove
       locations.exit()
@@ -348,16 +363,14 @@ let uniqueListOfCountries= [];
     function updateRadial() {
       const date = formatDateForData(new Date(label.text()));
       filteredDatingData = datingData.filter(data => data.date <= date);
-      d3.selectAll('.cloud').remove();
+      // d3.selectAll('.cloud').remove();
+      // for(item of filteredDatingData.filter(newData => newData.date==date)){
+      //   createCloudChart(item);
+      // }
       plotDataCircles(filteredDatingData);
-      for(item of filteredDatingData.filter(newData => newData.date==date)){
-        createCloudChart(item);
-      }
     }
 
     function createCloudChart(item){
-      // let newData = data.filter(data => data.date == "2019-02-15").filter(function(d){ return d.activeUsers != 0 });
-      // specify svg width and height;
       const cloudWidth = Math.ceil(((item['swipes']+item['messages'])/10)), cloudHeight = Math.ceil(((item['swipes']+item['messages'])/10));
       const listenTo = Math.min(cloudWidth, cloudHeight);
       // create svg and g DOM elements;
@@ -374,7 +387,7 @@ let uniqueListOfCountries= [];
       var images = [], numSwipes = Math.floor(item['swipes']/10), swipeRem=Math.ceil(item['swipes']%10), numMsg = Math.floor(item['messages']/10), msgRem=Math.ceil(item['messages']%10),maxImages = numSwipes+numMsg, padding=1;
       var msgIconPath= "https://kersten16.github.io/InfoVis/docs/icons/message.png";
       var swipeIconPath = "https://kersten16.github.io/InfoVis/docs/icons/thumbs-up.png";
-      //console.log(numMsg, numSwipes, swipeRem,msgRem);
+      console.log(item);
       for(let i = 0; i< maxImages; i++){
         //const weight = 10;
         
@@ -433,7 +446,7 @@ let uniqueListOfCountries= [];
   // set the function that will update the view on each 'tick'
   .on('tick', ticked)
   .force('center', d3.forceCenter())
-  .force('cramp', d3.forceManyBody().strength(5))
+  .force('cramp', d3.forceManyBody().strength(1))
   // collition force for rects
   .force('collide', rectCollide().size(d=> {
   const s = scaleSize(d.weight);
@@ -451,7 +464,7 @@ let uniqueListOfCountries= [];
     var nodes, sizes, masses
     var size = constant([0, 0])
     var strength = 1
-    var iterations = 3
+    var iterations = 1
 
     function force() {
         var node, size, mass, xi, yi

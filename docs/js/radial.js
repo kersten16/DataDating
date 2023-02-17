@@ -10,6 +10,7 @@ var scatterPlotOpen = false;
 var margin = {top: 50, right: 50, bottom: 50, left: 50},height = 1600;
 const width = 1600;
 let uniqueListOfCountries= [];
+let uniqueListOfMeasures = [];
 
 // Load the dataset and formatting variables
   d3.json("data/allDates_Combined.json", d => {
@@ -29,6 +30,10 @@ let uniqueListOfCountries= [];
     datingData = datingData.sort((a, b) => d3.ascending(a.date, b.date)|| d3.ascending(a.country, b.country));
     var listOfCountries = datingData.map(d => d.country);
     uniqueListOfCountries = [...new Set(listOfCountries).values()];
+    
+    var listOfMeasures = datingData.map(d => d.measure);
+    uniqueListOfMeasures = [...new Set(listOfMeasures).values()];
+    console.log(uniqueListOfMeasures);
       //a.appOpens/(Math.max(a.activeUsers,1)),b.appOpens/(Math.max(b.activeUsers,1))));
     createVisual(datingData);
     //createTimeLine(data);
@@ -142,12 +147,12 @@ let uniqueListOfCountries= [];
         .text(formatDate(h));
       // filter data set and redraw plot
 
-      //d3.select('#radial').select('svg').remove()
-      // if(scatterPlotOpen){
-      //   updateScatter();
-      // }else{
+      d3.select('#radial').select('svg').remove()
+      if(scatterPlotOpen){
+        updateScatter();
+      }else{
         updateRadial();
-      //}
+      }
         
     }
   /***************************************CREATE RADIAL GRAPH*********************************************/
@@ -198,6 +203,7 @@ let uniqueListOfCountries= [];
   }
 
   /************************** MAKE RADIAL CHART *******************************/
+    const covidColours=['#e31010','#ed8224','#f5a11b','#fcc326','lightgrey']
     var max= 300;
     var ticks= (max/10)+1
     var radius = 600;
@@ -264,7 +270,7 @@ let uniqueListOfCountries= [];
 
       locations
         .attr('fill', function(d){
-          if(d.date==currentDate) return 'green';
+          if(d.date==currentDate) return 'blue';
           else return 'lightgrey';
         })
         .attr('r', function(d){
@@ -288,32 +294,23 @@ let uniqueListOfCountries= [];
           else return 4;
         })
         .attr('fill', function(d){
-          if(d.date==currentDate) return 'green';
+          if(d.date==currentDate) return 'blue';
           else return 'lightgrey';
         })
         .attr('opacity',function(d){
           if(d.date==currentDate) return 0.75;
           else return 0.5;})
-        // .attr('stroke', function(d){
-        //   if(d.daysSince==0){
-        //     return '#e31010';
-        //   }else if(d.daysSince<=7){
-        //     return '#ed8224';
-        //   }else if(d.daysSince<=14){
-        //     return '#f5a11b';
-        //   }else if (d.daysSince<=21){
-        //     return '#fcc326';
-        //   }else if (d.daysSince<=28){
-        //     return '#f5df3d';
-        //   }else{
-        //     return 'lightgrey';
-        //   }
-        // })
-        //.attr('stroke-width',3)
+        .attr('stroke', function(d){
+           if(d.daysSince>=28){
+            return covidColours[-1];
+         }
+          return covidColours[Math.floor(d.daysSince/7)];
+         })
+        .attr('stroke-width',2)
         //.append('title').text(d => d.country + ": "+d.date+ "\n"+d.appOpens/Math.max(d.activeUsers,1))
         .on("mouseover", mouseover)
         .on("mouseout", mouseout)
-        //.on("click", openScatterplot())
+        .on("click", clickon)
         //.transition()
         // .duration(200)
         // .attr('r', 15)
@@ -326,35 +323,42 @@ let uniqueListOfCountries= [];
       locations.exit()
       .remove();
       
+      function clickon (){
+        openScatterplot(d3.select(this).select('title').text().split(':')[0],currentDate);
+      }
 
       function mouseover () {
-        const avgUsers = d3.select(this).node();
-        // if(d3.select(this).data==formatDateForData(currentDate)){
-
-        // }
-          d3.select(this)
+        svg.selectAll(".location")
+        .attr('opacity', 0.25);
+          
+        d3.select(this)
             .raise();
-            
-
-          d3.select(this)
+          
+        d3.select(this)
             .attr("stroke", "#333")
-            .attr("stroke-width", 2)
+            .attr("stroke-width", 3)
             .attr('opacity', 1);  
         };
       
         function mouseout () {
           var currentDate = formatDateForData(new Date(label.text()));
           //const avgUsers = d3.select(this).node();
-            if(!d3.select(this).select('title').text().includes(currentDate)){
-              d3.select(this)
-                .lower();
-              }
+          if(!d3.select(this).select('title').text().includes(currentDate)){
+            d3.select(this)
+              .lower();
+          }
 
-          d3.select(this)
-            .attr("stroke", null)
-            .attr('opacity',function(d){
-              if(d.date==currentDate) return 0.75;
-              else return 0.5;});
+          svg.selectAll(".location")
+              .attr('opacity',function(d){
+                if(d.date==currentDate) return 0.75;
+                else return 0.5;})
+              .attr('stroke', function(d){
+                 if(d.daysSince>=28){
+                  return covidColours[-1];
+               }
+                return covidColours[Math.floor(d.daysSince/7)];
+               })
+               .attr('stroke-width', 2);
 
         };
   
@@ -438,132 +442,396 @@ let uniqueListOfCountries= [];
         .attr('href',  d => d.url);
         vizImages.exit().remove();
 
-      
-        // create the collection of forces
-  const simulation = d3.forceSimulation()
-  // set the nodes for the simulation to be our images
-  .nodes(images)
-  // set the function that will update the view on each 'tick'
-  .on('tick', ticked)
-  .force('center', d3.forceCenter())
-  .force('cramp', d3.forceManyBody().strength(1))
-  // collition force for rects
-  .force('collide', rectCollide().size(d=> {
-  const s = scaleSize(d.weight);
-  return [s + padding, s + padding];
-  }));
+          
+            // create the collection of forces
+      const simulation = d3.forceSimulation()
+      // set the nodes for the simulation to be our images
+      .nodes(images)
+      // set the function that will update the view on each 'tick'
+      .on('tick', ticked)
+      .force('center', d3.forceCenter())
+      .force('cramp', d3.forceManyBody().strength(1))
+      // collition force for rects
+      .force('collide', rectCollide().size(d=> {
+      const s = scaleSize(d.weight);
+      return [s + padding, s + padding];
+      }));
 
-  // update the position to new x and y
-  function ticked() {
-  vizImages.attr('x', d => d.x).attr('y', d=> d.y);
-  }
+      // update the position to new x and y
+      function ticked() {
+      vizImages.attr('x', d => d.x).attr('y', d=> d.y);
+      }
 
-  // Rect collition algorithm. i don't know exactly how it works
-  // https://bl.ocks.org/cmgiven/547658968d365bcc324f3e62e175709b
-  function rectCollide() {
-    var nodes, sizes, masses
-    var size = constant([0, 0])
-    var strength = 1
-    var iterations = 1
+      // Rect collition algorithm. i don't know exactly how it works
+      // https://bl.ocks.org/cmgiven/547658968d365bcc324f3e62e175709b
+      function rectCollide() {
+        var nodes, sizes, masses
+        var size = constant([0, 0])
+        var strength = 1
+        var iterations = 1
 
-    function force() {
-        var node, size, mass, xi, yi
-        var i = -1
-        while (++i < iterations) { iterate() }
+        function force() {
+            var node, size, mass, xi, yi
+            var i = -1
+            while (++i < iterations) { iterate() }
 
-        function iterate() {
-            var j = -1
-            var tree = d3.quadtree(nodes, xCenter, yCenter).visitAfter(prepare)
+            function iterate() {
+                var j = -1
+                var tree = d3.quadtree(nodes, xCenter, yCenter).visitAfter(prepare)
 
-            while (++j < nodes.length) {
-                node = nodes[j]
-                size = sizes[j]
-                mass = masses[j]
-                xi = xCenter(node)
-                yi = yCenter(node)
+                while (++j < nodes.length) {
+                    node = nodes[j]
+                    size = sizes[j]
+                    mass = masses[j]
+                    xi = xCenter(node)
+                    yi = yCenter(node)
 
-                tree.visit(apply)
-            }
-        }
-
-        function apply(quad, x0, y0, x1, y1) {
-            var data = quad.data
-            var xSize = (size[0] + quad.size[0]) / 2
-            var ySize = (size[1] + quad.size[1]) / 2
-            if (data) {
-                if (data.index <= node.index) { return }
-
-                var x = xi - xCenter(data)
-                var y = yi - yCenter(data)
-                var xd = Math.abs(x) - xSize
-                var yd = Math.abs(y) - ySize
-
-                if (xd < 0 && yd < 0) {
-                    var l = Math.sqrt(x * x + y * y)
-                    var m = masses[data.index] / (mass + masses[data.index])
-
-                    if (Math.abs(xd) < Math.abs(yd)) {
-                        node.vx -= (x *= xd / l * strength) * m
-                        data.vx += x * (1 - m)
-                    } else {
-                        node.vy -= (y *= yd / l * strength) * m
-                        data.vy += y * (1 - m)
-                    }
+                    tree.visit(apply)
                 }
             }
 
-            return x0 > xi + xSize || y0 > yi + ySize ||
-                  x1 < xi - xSize || y1 < yi - ySize
-        }
+            function apply(quad, x0, y0, x1, y1) {
+                var data = quad.data
+                var xSize = (size[0] + quad.size[0]) / 2
+                var ySize = (size[1] + quad.size[1]) / 2
+                if (data) {
+                    if (data.index <= node.index) { return }
 
-        function prepare(quad) {
-            if (quad.data) {
-                quad.size = sizes[quad.data.index]
-            } else {
-                quad.size = [0, 0]
-                var i = -1
-                while (++i < 4) {
-                    if (quad[i] && quad[i].size) {
-                        quad.size[0] = Math.max(quad.size[0], quad[i].size[0])
-                        quad.size[1] = Math.max(quad.size[1], quad[i].size[1])
+                    var x = xi - xCenter(data)
+                    var y = yi - yCenter(data)
+                    var xd = Math.abs(x) - xSize
+                    var yd = Math.abs(y) - ySize
+
+                    if (xd < 0 && yd < 0) {
+                        var l = Math.sqrt(x * x + y * y)
+                        var m = masses[data.index] / (mass + masses[data.index])
+
+                        if (Math.abs(xd) < Math.abs(yd)) {
+                            node.vx -= (x *= xd / l * strength) * m
+                            data.vx += x * (1 - m)
+                        } else {
+                            node.vy -= (y *= yd / l * strength) * m
+                            data.vy += y * (1 - m)
+                        }
+                    }
+                }
+
+                return x0 > xi + xSize || y0 > yi + ySize ||
+                      x1 < xi - xSize || y1 < yi - ySize
+            }
+
+            function prepare(quad) {
+                if (quad.data) {
+                    quad.size = sizes[quad.data.index]
+                } else {
+                    quad.size = [0, 0]
+                    var i = -1
+                    while (++i < 4) {
+                        if (quad[i] && quad[i].size) {
+                            quad.size[0] = Math.max(quad.size[0], quad[i].size[0])
+                            quad.size[1] = Math.max(quad.size[1], quad[i].size[1])
+                        }
                     }
                 }
             }
         }
-    }
 
-    function xCenter(d) { return d.x + d.vx + sizes[d.index][0] / 2 }
-    function yCenter(d) { return d.y + d.vy + sizes[d.index][1] / 2 }
+        function xCenter(d) { return d.x + d.vx + sizes[d.index][0] / 2 }
+        function yCenter(d) { return d.y + d.vy + sizes[d.index][1] / 2 }
 
-    force.initialize = function (_) {
-        sizes = (nodes = _).map(size)
-        masses = sizes.map(function (d) { return d[0] * d[1] })
-    }
+        force.initialize = function (_) {
+            sizes = (nodes = _).map(size)
+            masses = sizes.map(function (d) { return d[0] * d[1] })
+        }
 
-    force.size = function (_) {
-        return (arguments.length
-            ? (size = typeof _ === 'function' ? _ : constant(_), force)
-            : size)
-    }
+        force.size = function (_) {
+            return (arguments.length
+                ? (size = typeof _ === 'function' ? _ : constant(_), force)
+                : size)
+        }
 
-    force.strength = function (_) {
-        return (arguments.length ? (strength = +_, force) : strength)
-    }
+        force.strength = function (_) {
+            return (arguments.length ? (strength = +_, force) : strength)
+        }
 
-    force.iterations = function (_) {
-        return (arguments.length ? (iterations = +_, force) : iterations)
-    }
+        force.iterations = function (_) {
+            return (arguments.length ? (iterations = +_, force) : iterations)
+        }
 
-    return force
+        return force
+      }
+      function constant(_) {
+        return function () { return _ }
+      }
+            
   }
-  function constant(_) {
-    return function () { return _ }
-  }
-        
-              
+  
+  function openScatterplot(country, startDate){
+    // $("#radial").addClass("disabledbutton");
+    scatterPlotOpen=true;
+    
+    var selectedCountry = country;
+    var h1Tag = document.createElement('H1');
+    h1Tag.innerHTML = selectedCountry;
+    document.getElementById('scatter').prepend(h1Tag);
+    let measureColors={};
+    for(i = 1; i<= uniqueListOfMeasures.length; i++){
+      measureColors[uniqueListOfMeasures[i-1]]=["rgb(",(245-i*20),",",(30+245%(i*7)),",",(i*(i+3)),")"].join("");
     }
+    d3.json("data/allUsers_ByDate.json", d => {
+      /*  return {
+          date: d[i].date,
+          country: d[i].country,
+          swipe_passes: d[i].swipe_passes,
+          swipe_likes: d[i].swipe_likes,
+          messages: d[i].messages,
+          appOpens: d[i].appOpens
+        }*/
+    }).then(data => {
+
+      var filterData = data.filter(data => data.country == country);
+
+      createScatterPlot(filterData);
+    })
+
+    console.log(country);
+    var heightGraph = 400;
+
+    let element_ddCountry = document.getElementById("select-country");
+    function changeTitle() {
+
+      let element_title = document.getElementById("titleCountry");
+
+      selectedCountry = element_ddCountry.value;
+      element_title.textContent = selectedCountry;
+
+      const element = document.querySelectorAll(".bubble");
+      for (var i = 0; i < element.length; i++) {
+        d3.select(element[i]).remove();
+      }
+
 
     }
+
+    function addCountry() {
+      let text = document.getElementById("titleCountry");
+      text.textContent = selectedCountry;
+      const opt1 = document.createElement("option");
+      opt1.value = "Dyn Country 3";
+      opt1.text = "Dyn Country 3";
+
+      element_ddCountry.add(opt1, null);
+    }
+
+  }
+  function createScatterPlot(allTestData) {
+
+
+
+    let svg = d3.select("#plotSVG")
+      .style("overflow", "visible") // some tooltips stray outside the SVG border
+      .append("g")
+      .attr("transform", "translate(50,50)")
+
+    let xScale = d3.scaleLinear()
+      .domain([0, 250])   // my x-variable has a max of 2500
+      .range([0, 600]);   // my x-axis is 600px wide
+
+    let yScale = d3.scaleLinear()
+      .domain([0, 120])   // my y-variable has a max of 1200
+      .range([heightGraph, 0]);   // my y-axis is 400px high
+    // (the max and min are reversed because the 
+    // SVG y-value is measured from the top)
+
+
+    svg.append("g")       // the axis will be contained in an SVG group element
+      .attr("id", "yAxis")
+      .call(d3.axisLeft(yScale)
+        .ticks(5)
+        .tickFormat(d3.format("d"))
+        .tickSizeOuter(0)
+      )
+
+    svg.append("g")
+      .attr("transform", "translate(0," + heightGraph + ")")    // translate x-axis to bottom of chart
+      .attr("id", "xAxis")
+      .call(d3.axisBottom(xScale)
+        .ticks(5)
+        .tickFormat(d3.format("d"))
+        .tickSizeOuter(0)
+      )
+
+    svg.selectAll(".bubble")
+      .data(allTestData)    // bind each element of the data array to one SVG circle
+
+      .join("circle")
+      .attr("class", "bubble")
+      .attr("cx", d => xScale(d.messagesSent + d.messagesReceived))   // set the x position based on the number of messages
+      .attr("cy", d => yScale(d.swipePass + d.swipeLike))   // set the y position based on the number of swipes
+      .attr("r", d => Math.sqrt(d.appOpens) * 3)  // set the radius based on the article reading time
+      .attr("stroke", d => measureColors[datingData.filter(data => data.date==d.date).filter(data=> data.country==d.country)[0]["measure"]])
+      .attr("fill", d => measureColors[datingData.filter(data => data.date==d.date).filter(data=> data.country==d.country)[0]["measure"]])
+      .attr("fill-opacity", 0.5)
+      .on("mouseover", (e, d) => {    // event listener to show tooltip on hover
+        d3.select("#bubble-tip-" + d.userID)  // i'm using the publish time as a unique ID
+          .style("display", "block");
+      })
+      .on("mouseout", (e, d) => {    // event listener to hide tooltip after hover
+        if (!d.toolTipVisible) {
+          d3.select("#bubble-tip-" + d.userID)
+            .style("display", "none");
+        }
+      })
+      .on("click", (e, d) => {    // event listener to make tooltip remain visible on click
+        if (!d.toolTipVisible) {
+          d3.select("#bubble-tip-" + d.userID)
+            .style("display", "block");
+          d.toolTipVisible = true;
+        }
+        else {
+          d3.select("#bubble-tip-" + d.userID)
+            .style("display", "none");
+          d.toolTipVisible = false;
+        }
+      });
+
+
+    svg.selectAll(".bubble-tip")
+      .data(allTestData)
+      .join("g")
+      .attr("class", "bubble-tip")
+      .attr("id", (d) => "bubble-tip-" + d.userID)
+      .attr("transform", d => "translate(" + (xScale(d.messagesSent+d.messagesReceived) + 20) + ", " + yScale(d.swipeLike + d.swipePass) + ")")
+      .style("display", "none")
+      .append("rect")     // this is the background to the tooltip
+      .attr("x", -5)
+      .attr("y", -20)
+      .attr("rx", 5)
+      .attr("fill", "white")
+      .attr("fill-opacity", 0.9)
+      .attr("width", 180)
+      .attr("height", 100)
+
+    // SVG does not wrap text
+    // so I add a new text element for each line (4 words)
+    svg.selectAll(".bubble-tip")
+      .append("text")
+      .text(d => d.country)
+      .style("font-family", "sans-serif")
+      .style("font-size", 14)
+      .attr("stroke", "none")
+      .attr("fill", d => measureColors[datingData.filter(data => data.date==d.date).filter(data=> data.country==d.country)[0]["measure"]])
+
+
+    svg.selectAll(".bubble-tip")
+      .append("text")
+      .classed("bubble-tip-yText", true)
+      .text(d => "(" + d.swipeLike + " swipes)")
+      .attr("y", d => (20))
+      .style("font-family", "sans-serif")
+      .style("font-size", 14)
+      .attr("stroke", "none")
+      .attr("fill", d => measureColors[datingData.filter(data => data.date==d.date).filter(data=> data.country==d.country)[0]["measure"]])
+
+    let xVar = document.getElementById("select-x-var").value;
+    let yVar = "swipeLike";
+    document.getElementById("select-x-var").addEventListener("change", (e) => {
+
+      // update the x-variable based on the user selection
+      xVar = e.target.value
+
+      if (xVar === "userID") {
+
+        xScale = d3.scaleTime()
+          .domain([d3.min(allTestData, d => d[xVar]), d3.max(allTestData, d => d[xVar])])
+          .range([0, 600]);
+
+        d3.select("#xAxis")
+          .call(d3.axisBottom(xScale)
+            .tickFormat(d3.timeFormat("%b %d")))
+        //see here for time formatting options: 
+        // https://github.com/d3/d3-time-format
+      }
+      else if (xVar === "category") {
+
+        xScale = d3.scaleBand()
+          .domain(Object.keys(measureColors))
+          .range([0, 600])
+          .padding(1) // space them out so the bubble appears in the centre
+
+        svg.select("#xAxis")
+          .call(d3.axisBottom(xScale).tickSize(0))
+          .selectAll("text")
+          // offset the category names to fit them in horizontally
+          .attr("transform", (d, i) => `translate(0, ${(i % 2) * 20})`)
+          .style("fill", d => measureColors[d])
+      }
+      else {
+        // rescale the x-axis
+        xScale = d3.scaleLinear()
+          .domain([0, d3.max(allTestData, d => d[xVar])])
+          .range([0, 600]);
+
+        // redraw the x-axis
+        svg.select("#xAxis")
+          .call(d3.axisBottom(xScale)
+            .ticks(5)
+            .tickFormat(d3.format("d"))
+            .tickSizeOuter(0)
+          )
+
+      }
+      // transition each circle element
+      svg.selectAll(".bubble")
+        .transition()
+        .duration(1000)
+        .attr("cx", (d) => xScale(d[xVar]))
+
+      // transition each tooltip
+      svg.selectAll(".bubble-tip")
+        .transition()
+        .duration(1000)
+        .attr("transform", d => "translate(" + (xScale(d[xVar]) + 20) + ", " + yScale(d[yVar]) + ")")
+    })
+
+    document.getElementById("select-y-var").addEventListener("change", (e) => {
+
+      // update the x-variable based on the user selection
+      yVar = e.target.value
+
+      // rescale the x-axis
+      yScale = d3.scaleLinear()
+        .domain([0, d3.max(allTestData, d => d[yVar])])
+        .range([heightGraph, 0]);
+
+      // redraw the x-axis
+      svg.select("#yAxis")
+        .call(d3.axisLeft(yScale)
+          .ticks(5)
+          .tickFormat(d3.format("d"))
+          .tickSizeOuter(0)
+        )
+
+      // transition each circle element and tooltip
+      svg.selectAll(".bubble")
+        .transition()
+        .duration(1000)
+        .attr("cy", (d) => yScale(d[yVar]))
+
+      svg.selectAll(".bubble-tip-yText")
+        .text(d => "(" + d[yVar] + " " + yVar + ")")
+
+      svg.selectAll(".bubble-tip")
+        .attr("transform", d => "translate(" + (xScale(d[xVar]) + 20) + ", " + yScale(d[yVar]) + ")")
+    })
+  }
+  function updateScatter(){
+      //refilter data for dates from slider
+      //plot new data
+      //Maybe look at how I did this for the radial graph (updateRadial() and plotCirlcles())
+  }
+
+}
 
     
   

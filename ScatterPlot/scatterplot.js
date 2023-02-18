@@ -7,6 +7,7 @@ var counterColors = 0;
 let mappingColorUser = {};
 var counter_countryswipes = 0;
 var counter_countryconversationCount = 0;
+var selection_date = "Kein";
 
 //Set Possibilities
 let dates = ["2020-01-01", "2019-12-31", "2021-01-01", "2022-01-01"]
@@ -16,7 +17,19 @@ let userColors = ['#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb
 //Set Selections
 var selectedCountry = "Belgium";
 var selectedDate = "2020-01-01";
-var name_file = "Belgiumonly";
+var name_file = "allUsers_ByDate";
+
+var formatDateIntoMonth = d3.timeFormat("%m/%y");
+var formatDate = d3.timeFormat("%b %d %Y");
+
+var formatDateForData = d3.timeFormat("%Y-%m-%d");
+var parseDate = d3.timeParse("%m/%d/%y");
+var scatterPlotOpen = false;
+let uniqueListOfCountries = [];
+
+var margin = { top: 50, right: 50, bottom: 50, left: 20 }, height = 1600;
+
+const width = 1600;
 
 //Load Data
 d3.json("../docs/data/" + name_file + ".json", d => {
@@ -110,42 +123,19 @@ let yVar = "messages";
 */
 let xVar = document.getElementById("select-x-var").value;
 let yVar = document.getElementById("select-y-var").value;
-function createScatterPlot(filteredData) {
 
-  let xScale = d3.scaleLinear()
-    .domain([0, d3.max(filteredData, d => d[xVar])])   // my x-variable has a max of 2500
-    .range([0, 600]);   // my x-axis is 600px wide
 
-  let yScale = d3.scaleLinear()
-    .domain([0, d3.max(filteredData, d => d[yVar])])   // my y-variable has a max of 1200
-    .range([heightGraph, 0]);   // my y-axis is 400px high
-  // (the max and min are reversed because the 
-  // SVG y-value is measured from the top)
+function methodToBeNamed(yScale, xScale, filteredData, selection_date) {
 
-  svg.append("g")       // the axis will be contained in an SVG group element
-    .attr("id", "yAxis")
-    .call(d3.axisLeft(yScale)
-      .ticks(5)
-      .tickFormat(d3.format("d"))
-      .tickSizeOuter(0)
-    )
-
-  svg.append("g")
-    .attr("transform", "translate(0," + heightGraph + ")")    // translate x-axis to bottom of chart
-    .attr("id", "xAxis")
-    .call(d3.axisBottom(xScale)
-      .ticks(5)
-      .tickFormat(d3.format("d"))
-      .tickSizeOuter(0)
-    )
 
   svg.selectAll(".bubble")
+    .enter()
     .data(filteredData)    // bind each element of the data array to one SVG circle
-    // .enter()
+
     .join("circle")
     .attr("class", "bubble")
-    .attr("cx", d => xScale(d.messagesSent + d.messagesReceived))   // set the x position based on the number of conversationCount
-    .attr("cy", d => yScale(d.swipePass + d.swipeLike))   // set the y position based on the number of swipes
+    .attr("cx", d => xScale(d[xVar]))   // set the x position based on the number of conversationCount
+    .attr("cy", d => yScale(d[yVar]))   // set the y position based on the number of swipes
     .attr("r", d => Math.sqrt(d.appOpens))  // set the radius based on the article reading time
     .attr("fill", d => {
       if (!mappingColorUser.hasOwnProperty(d.userID)) {
@@ -154,8 +144,13 @@ function createScatterPlot(filteredData) {
       return mappingColorUser[d.userID];
     }
     )
-    .attr("stroke", d => mappingColorUser[d.userID])
-    .attr("fill-opacity", 1)
+    .attr("fill-opacity", d => {
+      if (d.date == selection_date) {
+        return 1;
+      } else {
+        return 0.4;
+      }
+    })
     .on("mouseover", (e, d) => {    // event listener to show tooltip on hover
       d3.select("#bubble-tip-" + d.userID)  // i'm using the publish time as a unique ID
         .style("display", "block");
@@ -179,8 +174,31 @@ function createScatterPlot(filteredData) {
       }
     });
 
+    svg.selectAll(".bubble-tip")
+    .data(filteredData)
+    .join("g")
+    .attr("class", "bubble-tip")
+    .attr("id", (d) => "bubble-tip-" + d.userID)
+    .attr("transform", d => "translate(" + 700 + ", " + 200 + ")")
+    .style("display", "none")
+    .append("rect")     // this is the background to the tooltip
+    .attr("x", -5)
+    .attr("y", -20)
+    .attr("rx", 5)
+    .attr("fill", "white")
+    .attr("fill-opacity", 0.9)
+    .attr("width", 180)
+    .attr("height", 100)
 
-  svg.selectAll(".bubble-tip")
+    svg.selectAll(".bubble-tip")
+    .append("text")
+    .text(d => "user: " + d.userID)
+    .style("font-family", "sans-serif")
+    .style("font-size", 14)
+    .attr("stroke", "none")
+    .attr("fill", d => mappingColorUser[d.userID])
+
+ /* svg.selectAll(".bubble-tip")
     .data(filteredData)
     .join("g")
     .attr("class", "bubble-tip")
@@ -196,6 +214,7 @@ function createScatterPlot(filteredData) {
     .attr("width", 180)
     .attr("height", 100)
 
+
   // SVG does not wrap text
   // so I add a new text element for each line (4 words)
   svg.selectAll(".bubble-tip")
@@ -209,8 +228,12 @@ function createScatterPlot(filteredData) {
   svg.selectAll(".bubble-tip")
     .append("text")
     .classed("bubble-tip-yText", true)
-    .text(d => "(swipes: " + (d.swipeLike + d.swipePass) + " )")
-    .attr("y", d => (20))
+   // .text(d => "(swipes: " + (d.swipeLike + d.swipePass) + " )")
+   .text(d => {
+     return "(" + yVar + ": " + d.swipeLike + ")";
+   })
+  
+   .attr("y", d => (20))
     .style("font-family", "sans-serif")
     .style("font-size", 14)
     .attr("stroke", "none")
@@ -219,12 +242,44 @@ function createScatterPlot(filteredData) {
   svg.selectAll(".bubble-tip")
     .append("text")
     .classed("bubble-tip-yText", true)
-    .text(d => "(Messages: " + (d.messagesSent + d.messagesReceived) + ")")
+  //  .text(d => "(Messages: " + (d.messagesSent + d.messagesReceived) + ")")
+    .text(d => "(" + xVar+": " + d[xVar] + " )")
     .attr("y", d => (40))
     .style("font-family", "sans-serif")
     .style("font-size", 14)
     .attr("stroke", "none")
     .attr("fill", d => mappingColorUser[d.userID])
+    */
+}
+
+function createScatterPlot(filteredData) {
+
+
+  let xScale = d3.scaleLinear()
+    .domain([0, d3.max(filteredData, d => d[xVar])])   // my x-variable has a max of 2500
+    .range([0, 600]);   // my x-axis is 600px wide
+
+  let yScale = d3.scaleLinear()
+    .domain([0, d3.max(filteredData, d => d[yVar])])   // my y-variable has a max of 1200
+    .range([heightGraph, 0]);   // my y-axis is 400px high
+  // (the max and min are reversed because the 
+  // SVG y-value is measured from the top)
+  svg.append("g")       // the axis will be contained in an SVG group element
+    .attr("id", "yAxis")
+    .call(d3.axisLeft(yScale)
+      .ticks(5)
+      .tickFormat(d3.format("d"))
+      .tickSizeOuter(0)
+    )
+  svg.append("g")
+    .attr("transform", "translate(0," + heightGraph + ")")    // translate x-axis to bottom of chart
+    .attr("id", "xAxis")
+    .call(d3.axisBottom(xScale)
+      .ticks(5)
+      .tickFormat(d3.format("d"))
+      .tickSizeOuter(0))
+
+  methodToBeNamed(yScale, xScale, filteredData, selection_date);
 
 
   document.getElementById("select-x-var").addEventListener("change", (e) => {
@@ -302,17 +357,7 @@ function colorBubblesGrey() {
   svg.selectAll(".bubble").attr("fill-opacity", 0.4)
 }
 
-var formatDateIntoMonth = d3.timeFormat("%m/%y");
-var formatDate = d3.timeFormat("%b %d %Y");
 
-var formatDateForData = d3.timeFormat("%Y-%m-%d");
-var parseDate = d3.timeParse("%m/%d/%y");
-var scatterPlotOpen = false;
-let uniqueListOfCountries = [];
-
-var margin = { top: 50, right: 50, bottom: 50, left: 20 }, height = 1600;
-
-const width = 1600;
 
 function createTimeLine(datingData, covidData) {
   let filteredDatingData = datingData.filter(data => data.date == startDate);
@@ -434,151 +479,49 @@ function createTimeLine(datingData, covidData) {
 
   function updateScatter() {
     colorBubblesGrey();
-    const selection_date = formatDateForData(new Date(label.text()));
+    selection_date = formatDateForData(new Date(label.text()));
     // filteredDatingData = datingData.filter(data => data.date <= date);
     filteredDatingData = datingData.filter(data => data.date <= selection_date);
     d3.selectAll('.bubble').remove();
-    plotDataCircles(filteredDatingData, selection_date);
-
-
-
+    plotDataCircles(datingData, filteredDatingData);
 
   }
-  function plotDataCircles(allTestData, selection_date) {
+  function plotDataCircles(alldata, filteredData) {
+    xVar = document.getElementById("select-x-var").value;
+    yVar = document.getElementById("select-y-var").value;
 
     let svg = d3.select("#plotSVG")
       .style("overflow", "visible") // some tooltips stray outside the SVG border
       .append("g")
       .attr("transform", "translate(50,50)")
-
-    xScale = d3.scaleLinear()
+     
+  xScale = d3.scaleLinear()
       //  .domain([0, d3.max(filteredData, d => d["messagesSent"])])   // my x-variable has a max of 2500
-      .domain([0, d3.max(allTestData, d => d[xVar])])
+      .domain([0, d3.max(alldata, d => d[xVar])])
       //    .domain([0, 250])   // my x-variable has a max of 2500
       .range([0, 600]);   // my x-axis is 600px wide
 
     yScale = d3.scaleLinear()
-      .domain([0, d3.max(allTestData, d => d[yVar])])
+      .domain([0, d3.max(alldata, d => d[yVar])])
       //   .domain([0, 120])   // my y-variable has a max of 1200
       .range([heightGraph, 0]);   // my y-axis is 400px high
     // (the max and min are reversed because the 
     // SVG y-value is measured from the top)
-
+  /*
     svg.selectAll(".bubble").attr("fill-opacity", 0.4)
 
-    svg.append("g")       // the axis will be contained in an SVG group element
-      .attr("id", "yAxis")
-      .call(d3.axisLeft(yScale)
-        .ticks(5)
-        .tickFormat(d3.format("d"))
-        .tickSizeOuter(0)
-      )
-
-    svg.append("g")
-      .attr("transform", "translate(0," + heightGraph + ")")    // translate x-axis to bottom of chart
-      .attr("id", "xAxis")
+  
+    // redraw the x-axis
+    svg.select("#yAxis").remove;
+  
+    svg.select("#xAxis")
       .call(d3.axisBottom(xScale)
         .ticks(5)
         .tickFormat(d3.format("d"))
         .tickSizeOuter(0)
-      )
+      )*/
 
-
-    svg.selectAll(".bubble")
-      .enter()
-      .data(allTestData)    // bind each element of the data array to one SVG circle
-      .join("circle")
-      .attr("class", "bubble")
-      .attr("cx", d => xScale(d[xVar]))   // set the x position based on the number of conversationCount
-      .attr("cy", d => yScale(d[yVar]))   // set the y position based on the number of swipes
-      .attr("r", d => Math.sqrt(d.appOpens))  // set the radius based on the article reading time
-
-
-      .attr("fill", d => {
-        if (!mappingColorUser.hasOwnProperty(d.userID)) {
-          mappingColorUser[d.userID] = userColors[counterColors++]
-
-        }
-        return mappingColorUser[d.userID];
-      })
-      .attr("fill-opacity", d => {
-        if (d.date == selection_date) {
-          return 1;
-        } else {
-          return 0.4;
-        }
-
-      })
-      .on("mouseover", (e, d) => {    // event listener to show tooltip on hover
-        d3.select("#bubble-tip-" + d.userID)  // i'm using the publish time as a unique ID
-          .style("display", "block");
-      })
-      .on("mouseout", (e, d) => {    // event listener to hide tooltip after hover
-        if (!d.toolTipVisible) {
-          d3.select("#bubble-tip-" + d.userID)
-            .style("display", "none");
-        }
-      })
-      .on("click", (e, d) => {    // event listener to make tooltip remain visible on click
-        if (!d.toolTipVisible) {
-          d3.select("#bubble-tip-" + d.userID)
-            .style("display", "block");
-          d.toolTipVisible = true;
-        }
-        else {
-          d3.select("#bubble-tip-" + d.userID)
-            .style("display", "none");
-          d.toolTipVisible = false;
-        }
-      });
-
-
-    svg.selectAll(".bubble-tip")
-      .data(allTestData)
-      .join("g")
-      .attr("class", "bubble-tip")
-      .attr("id", (d) => "bubble-tip-" + d.userID)
-      .attr("transform", d => "translate(" + (xScale(d.messagesSent + d.messagesReceived) + 20) + ", " + yScale(d.swipeLike + d.swipePass) + ")")
-      .style("display", "none")
-      .append("rect")     // this is the background to the tooltip
-      .attr("x", -5)
-      .attr("y", -20)
-      .attr("rx", 5)
-      .attr("fill", "white")
-      .attr("fill-opacity", 0.9)
-      .attr("width", 180)
-      .attr("height", 100)
-
-    // SVG does not wrap text
-    // so I add a new text element for each line (4 words)
-    svg.selectAll(".bubble-tip")
-      .append("text")
-      .text(d => "user: " + d.userID)
-      .style("font-family", "sans-serif")
-      .style("font-size", 14)
-      .attr("stroke", "none")
-      .attr("fill", d => mappingColorUser[d.userID])
-
-    svg.selectAll(".bubble-tip")
-      .append("text")
-      .classed("bubble-tip-yText", true)
-      .text(d => "(swipes: " + (d.swipeLike + d.swipePass) + " )")
-      .attr("y", d => (20))
-      .style("font-family", "sans-serif")
-      .style("font-size", 14)
-      .attr("stroke", "none")
-      .attr("fill", d => mappingColorUser[d.userID])
-
-    svg.selectAll(".bubble-tip")
-      .append("text")
-      .classed("bubble-tip-yText", true)
-      .text(d => "(Messages: " + (d.messagesSent + d.messagesReceived) + " )")
-      .attr("y", d => (40))
-      .style("font-family", "sans-serif")
-      .style("font-size", 14)
-      .attr("stroke", "none")
-      .attr("fill", d => mappingColorUser[d.userID])
-
+    methodToBeNamed(yScale, xScale, filteredData, selection_date);
 
   }
 

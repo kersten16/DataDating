@@ -21,18 +21,22 @@
 		<div id="plot-wrapper" style="position: relative; overflow: visible; margin-top: 20px;">
 			<svg id="plotSVG" width=700 height=500></svg>
 			<select id="select-y-var" style="position: absolute; top:0px; left:0px;">
-				<option value="swipes" selected>Swipes</option>
-				<option value="swipe_passes">Passes</option>
-				<option value="swipe_likes">Likes</option>
-				<option value="messages">Messages</option>
+				<!--<option value="swipes" >Swipes</option>-->
+				<option value="swipePass">Passes</option>
+				<option value="swipeLike"selected>Likes</option>
+				<option value="messagesSent">Messages Sent</option>
+				<option value="messagesReceived">Messages Received</option>
 				<option value="appOpens">Open</option>
 			</select>
 			<select id="select-x-var" style="position: absolute; bottom:0px; left: 600px;">
-				<option value="messages" selected>Messages</option>
-				<option value="appOpens">Open</option>
-				<option value="swipes">Swipes</option>
-				<option value="swipe_passes">Passes</option>
-				<option value="swipe_likes">Likes</option>
+				<!--<option value="messages">Messages</option>-->
+				<option value="messagesSent">Messages Sent</option>
+				<option value="messagesReceived">Messages Received</option>
+	
+				<option value="appOpens"selected >Open</option>
+			<!--	<option value="swipes">Swipes</option>-->
+				<option value="swipePass">Passes</option>
+				<option value="swipeLike">Likes</option>
 
 			</select>
 		</div>
@@ -42,19 +46,11 @@
 
 		<!--<button onclick="functionGhost()" class="button button2">Grey</button>-->
 		<div id="timeLine" class="responsive-svg-container">
-		<!--<button id="play-button">Play</button>-->	
+			<!--<button id="play-button">Play</button>-->
 		</div>
 		<script src="scatterplot.js"></script>
 	</div>
-	<!--<div>
-		<h1>Timeline</h1>
-		<script src="https://d3js.org/d3.v4.min.js"></script>
-	
-		<div id="vis">
-			<button id="play-button">Play</button>
-		</div>
-		<script src="timeline.js"></script>
-	</div>-->
+
 
 </body>
 

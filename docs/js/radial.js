@@ -248,6 +248,7 @@ let uniqueListOfMeasures = [];
           .style('font-size', '20px')
       textbox.append('rect')
           .raise()
+          .attr('class', 'textBB')
           .attr('x', function(){
             let width=this.parentNode.firstChild.getComputedTextLength()+5;
             if(get_anchor(i)=='end'){
@@ -266,18 +267,33 @@ let uniqueListOfMeasures = [];
             return plabel[1]-40;
 
           })
+          .attr('persist', false)
           .attr('width', function(){return Math.max(this.parentNode.firstChild.getComputedTextLength()+10,75);})
           .attr('height', 60)
-          .attr('opacity', 0)
+          .attr('fill-opacity', 0)
           .on("mouseover", function(e){
+            //d3.selectAll('#'+e.target.parentNode.id+'_cloud').remove();
+            if(this.persist){return;}
             var date = formatDateForData(new Date(label.text()));
             extrafilteredDatingData = datingData.filter(data => data.date == date).filter(newData => newData.country==e.target.parentNode.id);
             return createCloudChart(extrafilteredDatingData[0]);
           } )
+          .on("click",function(e){
+            if(this.persist){
+              this.persist=false;
+              d3.select(e.target).attr('stroke', null);
+              return d3.selectAll('#'+e.target.parentNode.id+'_cloud').remove();
+            }
+            this.persist=true;
+            d3.select(e.target).attr('stroke', 'lightgrey');
+            return ;
+          })
           .on("mouseout", async function(e){
-            console.log("mouseout", Date());
-            await delay(500);
-            return d3.selectAll('#'+e.target.parentNode.id+'_cloud').remove();
+            //await delay(1000);
+            if(!this.persist){
+              return d3.selectAll('#'+e.target.parentNode.id+'_cloud').remove();
+            }
+            return;
           });
           
     }
@@ -394,7 +410,8 @@ let uniqueListOfMeasures = [];
     function updateRadial() {
       const date = formatDateForData(new Date(label.text()));
       filteredDatingData = datingData.filter(data => data.date <= date);
-      // d3.selectAll('.cloud').remove();
+      d3.selectAll('.cloud').remove();
+      d3.selectAll('.textBB').attr('stroke',null);
       // for(item of filteredDatingData.filter(newData => newData.date==date)){
       //   createCloudChart(item);
       // }

@@ -607,7 +607,7 @@ var parseDate = d3.timeParse("%m/%d/%y");
 var scatterPlotOpen = false;
 let uniqueListOfCountries = [];
 
-var margin = { top: 50, right: 50, bottom: 50, left: 50 }, height = 1600;
+var margin = { top: 50, right: 50, bottom: 50, left: 20 }, height = 1600;
 
 const width = 1600;
 
@@ -810,6 +810,7 @@ function createTimeLine(datingData, covidData) {
   
   
     svg.selectAll(".bubble")
+    .enter()
       .data(allTestData)    // bind each element of the data array to one SVG circle
       .join("circle")
       .attr("class", "bubble")

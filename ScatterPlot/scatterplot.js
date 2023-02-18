@@ -5,8 +5,12 @@ var heightGraph = 400;
 var counterClick = 0;
 var counterColors = 0;
 let mappingColorUser = {};
-var counter_countryswipes = 0;
-var counter_countryconversationCount = 0;
+var counter_country_swipeLike = 0;
+var counter_country_swipePass = 0;
+var counter_country_messagesSent = 0;
+var counter_country_messagesReceived = 0;
+
+var counter_country_appOpens = 0;
 var selection_date = "Kein";
 
 //Set Possibilities
@@ -88,13 +92,25 @@ function filterData_ByCountry(data_array, givenCountry) {
  * @param {*} givenDate 
  */
 function calculateStats_ByCountry(data_array, givenCountry, givenDate) {
+  counter_country_swipeLike = 0
+  counter_country_swipePass = 0
+  counter_country_messagesSent = 0
+  counter_country_messagesReceived = 0
+  counter_country_appOpens = 0;
+
   for (i = 0; i < data_array.length; i++) {
     if (data_array[i].country == givenCountry) {
-      if (data_array[i].date == givenDate) {
-        counter_countryswipes = counter_countryswipes + data_array[i].swipeLike + data_array[i].swipePass;
-        counter_countryconversationCount = counter_countryconversationCount + data_array[i].messagesReceived + data_array[i].messagesSent;
-      }
-    }
+      // if (data_array[i].date == givenDate) {
+      counter_country_swipeLike = counter_country_swipeLike + data_array[i].swipeLike;
+      counter_country_swipePass = counter_country_swipePass + data_array[i].swipePass;
+      counter_country_messagesSent = counter_country_messagesSent + data_array[i].messagesSent;
+      counter_country_messagesReceived = counter_country_messagesReceived + data_array[i].messagesReceived;
+      counter_country_appOpens = counter_country_appOpens + data_array[i].appOpens;
+      /*
+      counter_countryswipes = counter_countryswipes + data_array[i].swipeLike + data_array[i].swipePass;
+      counter_countryconversationCount = counter_countryconversationCount + data_array[i].messagesReceived + data_array[i].messagesSent;
+    */   }
+    // }
   }
 
 }
@@ -104,17 +120,17 @@ function calculateStats_ByCountry(data_array, givenCountry, givenDate) {
  * @param {*} numberSwipes 
  * @param {*} numberconversationCount 
  */
-function addCountryStats(numberSwipes, numberconversationCount) {
-  const element_text_swipes = document.createElement("p");
-  const node_swipes = document.createTextNode("Swipes: " + numberSwipes);
-  element_text_swipes.appendChild(node_swipes);
-  document.getElementById("country-stats").appendChild(element_text_swipes);
+function editCountryStats() {
+  
+  document.getElementById("statsCountryTitle").innerHTML = selectedCountry;
+ if(selection_date!="Kein") document.getElementById("stats-subtitle").innerHTML = "Until "+selection_date;  
+  document.getElementById("swipeLike").innerHTML = "Likes: " + counter_country_swipeLike;
+  document.getElementById("swipePass").innerHTML = "Passes: " + counter_country_swipePass;
+  document.getElementById("messagesSent").innerHTML = "Messages Sent: " + counter_country_messagesSent;
+  document.getElementById("messagesReceived").innerHTML = "Messages Received: " + counter_country_messagesReceived;
+  document.getElementById("appOpens").innerHTML = "App Opens: " + counter_country_appOpens;
 
 
-  const element_text_conversationCount = document.createElement("p");
-  const node_conversationCount = document.createTextNode("Messages: " + numberconversationCount);
-  element_text_conversationCount.appendChild(node_conversationCount);
-  document.getElementById("country-stats").appendChild(element_text_conversationCount);
 }
 /*
 let xVar = document.getElementById("select-x-var").value;
@@ -174,7 +190,7 @@ function methodToBeNamed(yScale, xScale, filteredData, selection_date) {
       }
     });
 
-    svg.selectAll(".bubble-tip")
+  svg.selectAll(".bubble-tip")
     .data(filteredData)
     .join("g")
     .attr("class", "bubble-tip")
@@ -190,33 +206,6 @@ function methodToBeNamed(yScale, xScale, filteredData, selection_date) {
     .attr("width", 180)
     .attr("height", 100)
 
-    svg.selectAll(".bubble-tip")
-    .append("text")
-    .text(d => "user: " + d.userID)
-    .style("font-family", "sans-serif")
-    .style("font-size", 14)
-    .attr("stroke", "none")
-    .attr("fill", d => mappingColorUser[d.userID])
-
- /* svg.selectAll(".bubble-tip")
-    .data(filteredData)
-    .join("g")
-    .attr("class", "bubble-tip")
-    .attr("id", (d) => "bubble-tip-" + d.userID)
-    .attr("transform", d => "translate(" + (xScale(d.messagesSent + d.messagesReceived) + 20) + ", " + yScale(d.swipeLike + d.swipePass) + ")")
-    .style("display", "none")
-    .append("rect")     // this is the background to the tooltip
-    .attr("x", -5)
-    .attr("y", -20)
-    .attr("rx", 5)
-    .attr("fill", "white")
-    .attr("fill-opacity", 0.9)
-    .attr("width", 180)
-    .attr("height", 100)
-
-
-  // SVG does not wrap text
-  // so I add a new text element for each line (4 words)
   svg.selectAll(".bubble-tip")
     .append("text")
     .text(d => "user: " + d.userID)
@@ -225,31 +214,58 @@ function methodToBeNamed(yScale, xScale, filteredData, selection_date) {
     .attr("stroke", "none")
     .attr("fill", d => mappingColorUser[d.userID])
 
-  svg.selectAll(".bubble-tip")
-    .append("text")
-    .classed("bubble-tip-yText", true)
-   // .text(d => "(swipes: " + (d.swipeLike + d.swipePass) + " )")
-   .text(d => {
-     return "(" + yVar + ": " + d.swipeLike + ")";
-   })
-  
-   .attr("y", d => (20))
-    .style("font-family", "sans-serif")
-    .style("font-size", 14)
-    .attr("stroke", "none")
-    .attr("fill", d => mappingColorUser[d.userID])
-
-  svg.selectAll(".bubble-tip")
-    .append("text")
-    .classed("bubble-tip-yText", true)
-  //  .text(d => "(Messages: " + (d.messagesSent + d.messagesReceived) + ")")
-    .text(d => "(" + xVar+": " + d[xVar] + " )")
-    .attr("y", d => (40))
-    .style("font-family", "sans-serif")
-    .style("font-size", 14)
-    .attr("stroke", "none")
-    .attr("fill", d => mappingColorUser[d.userID])
-    */
+  /* svg.selectAll(".bubble-tip")
+     .data(filteredData)
+     .join("g")
+     .attr("class", "bubble-tip")
+     .attr("id", (d) => "bubble-tip-" + d.userID)
+     .attr("transform", d => "translate(" + (xScale(d.messagesSent + d.messagesReceived) + 20) + ", " + yScale(d.swipeLike + d.swipePass) + ")")
+     .style("display", "none")
+     .append("rect")     // this is the background to the tooltip
+     .attr("x", -5)
+     .attr("y", -20)
+     .attr("rx", 5)
+     .attr("fill", "white")
+     .attr("fill-opacity", 0.9)
+     .attr("width", 180)
+     .attr("height", 100)
+ 
+ 
+   // SVG does not wrap text
+   // so I add a new text element for each line (4 words)
+   svg.selectAll(".bubble-tip")
+     .append("text")
+     .text(d => "user: " + d.userID)
+     .style("font-family", "sans-serif")
+     .style("font-size", 14)
+     .attr("stroke", "none")
+     .attr("fill", d => mappingColorUser[d.userID])
+ 
+   svg.selectAll(".bubble-tip")
+     .append("text")
+     .classed("bubble-tip-yText", true)
+    // .text(d => "(swipes: " + (d.swipeLike + d.swipePass) + " )")
+    .text(d => {
+      return "(" + yVar + ": " + d.swipeLike + ")";
+    })
+   
+    .attr("y", d => (20))
+     .style("font-family", "sans-serif")
+     .style("font-size", 14)
+     .attr("stroke", "none")
+     .attr("fill", d => mappingColorUser[d.userID])
+ 
+   svg.selectAll(".bubble-tip")
+     .append("text")
+     .classed("bubble-tip-yText", true)
+   //  .text(d => "(Messages: " + (d.messagesSent + d.messagesReceived) + ")")
+     .text(d => "(" + xVar+": " + d[xVar] + " )")
+     .attr("y", d => (40))
+     .style("font-family", "sans-serif")
+     .style("font-size", 14)
+     .attr("stroke", "none")
+     .attr("fill", d => mappingColorUser[d.userID])
+     */
 }
 
 function createScatterPlot(filteredData) {
@@ -312,7 +328,8 @@ function createScatterPlot(filteredData) {
     svg.selectAll(".bubble-tip")
       .transition()
       .duration(1000)
-      .attr("transform", d => "translate(" + (xScale(d[xVar]) + 20) + ", " + yScale(d[yVar]) + ")")
+      .attr("transform", d => "translate(" + 700 + ", " + 200 + ")")
+    // .attr("transform", d => "translate(" + (xScale(d[xVar]) + 20) + ", " + yScale(d[yVar]) + ")")
   })
 
   document.getElementById("select-y-var").addEventListener("change", (e) => {
@@ -343,12 +360,13 @@ function createScatterPlot(filteredData) {
       .text(d => "(" + d[yVar] + " " + yVar + ")")
 
     svg.selectAll(".bubble-tip")
-      .attr("transform", d => "translate(" + (xScale(d[xVar]) + 20) + ", " + yScale(d[yVar]) + ")")
+      .attr("transform", d => "translate(" + 700 + ", " + 200 + ")")
+    //  .attr("transform", d => "translate(" + (xScale(d[xVar]) + 20) + ", " + yScale(d[yVar]) + ")")
 
 
 
   })
-  addCountryStats(counter_countryswipes, counter_countryconversationCount);
+  editCountryStats();
 }
 
 
@@ -494,8 +512,8 @@ function createTimeLine(datingData, covidData) {
       .style("overflow", "visible") // some tooltips stray outside the SVG border
       .append("g")
       .attr("transform", "translate(50,50)")
-     
-  xScale = d3.scaleLinear()
+
+    xScale = d3.scaleLinear()
       //  .domain([0, d3.max(filteredData, d => d["messagesSent"])])   // my x-variable has a max of 2500
       .domain([0, d3.max(alldata, d => d[xVar])])
       //    .domain([0, 250])   // my x-variable has a max of 2500
@@ -507,22 +525,24 @@ function createTimeLine(datingData, covidData) {
       .range([heightGraph, 0]);   // my y-axis is 400px high
     // (the max and min are reversed because the 
     // SVG y-value is measured from the top)
-  /*
-    svg.selectAll(".bubble").attr("fill-opacity", 0.4)
-
+    /*
+      svg.selectAll(".bubble").attr("fill-opacity", 0.4)
   
-    // redraw the x-axis
-    svg.select("#yAxis").remove;
-  
-    svg.select("#xAxis")
-      .call(d3.axisBottom(xScale)
-        .ticks(5)
-        .tickFormat(d3.format("d"))
-        .tickSizeOuter(0)
-      )*/
+    
+      // redraw the x-axis
+      svg.select("#yAxis").remove;
+    
+      svg.select("#xAxis")
+        .call(d3.axisBottom(xScale)
+          .ticks(5)
+          .tickFormat(d3.format("d"))
+          .tickSizeOuter(0)
+        )*/
 
     methodToBeNamed(yScale, xScale, filteredData, selection_date);
 
+    calculateStats_ByCountry(filteredData, selectedCountry);
+    editCountryStats();
   }
 
 }

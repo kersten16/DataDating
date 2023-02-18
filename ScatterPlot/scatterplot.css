@@ -14,7 +14,7 @@ select {
   position: absolute;
   top: 40px; right: 60px;
   border-style: solid;
-  height: 100px;
+  height: auto;
   width: 200px;
   border-color: #0096FF; 
   padding-top: 10px;

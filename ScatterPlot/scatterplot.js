@@ -4,14 +4,14 @@ var heightGraph = 400;
 //Create  Variables 
 var counterClick = 0;
 var counterColors = 0;
-let mappingColorUser = {};
 var counter_country_swipeLike = 0;
 var counter_country_swipePass = 0;
 var counter_country_messagesSent = 0;
 var counter_country_messagesReceived = 0;
-
 var counter_country_appOpens = 0;
 var selection_date = "Kein";
+let mappingColorUser = {};
+var isClickedOnTimeline = false;
 
 //Set Possibilities
 let dates = ["2020-01-01", "2019-12-31", "2021-01-01", "2022-01-01"]
@@ -40,12 +40,12 @@ d3.json("../docs/data/" + name_file + ".json", d => {
 }).then(data => {
   //Calculate the stats of that country on that date
   //TODO: Whole time
-  calculateStats_ByCountry(data, selectedCountry, selectedDate);
   //Filter the data by country and Date
   var filterData = filterData_ByCountry(data, selectedCountry);
   //Create Scatterplot with filtered data
   createScatterPlot(filterData);
   createTimeLine(filterData);
+ 
 })
 
 //Create SVG
@@ -106,12 +106,22 @@ function calculateStats_ByCountry(data_array, givenCountry, givenDate) {
       counter_country_messagesSent = counter_country_messagesSent + data_array[i].messagesSent;
       counter_country_messagesReceived = counter_country_messagesReceived + data_array[i].messagesReceived;
       counter_country_appOpens = counter_country_appOpens + data_array[i].appOpens;
+
+
       /*
       counter_countryswipes = counter_countryswipes + data_array[i].swipeLike + data_array[i].swipePass;
       counter_countryconversationCount = counter_countryconversationCount + data_array[i].messagesReceived + data_array[i].messagesSent;
     */   }
     // }
   }
+  
+  //Divide By User
+  counter_country_swipeLike = Math.ceil(counter_country_swipeLike / Object.keys(mappingColorUser).length);
+  /* counter_country_swipePass = counter_country_swipePass + data_array[i].swipePass;
+   counter_country_messagesSent = counter_country_messagesSent + data_array[i].messagesSent;
+   counter_country_messagesReceived = counter_country_messagesReceived + data_array[i].messagesReceived;
+   counter_country_appOpens = counter_country_appOpens + data_array[i].appOpens;
+ */
 
 }
 
@@ -121,9 +131,9 @@ function calculateStats_ByCountry(data_array, givenCountry, givenDate) {
  * @param {*} numberconversationCount 
  */
 function editCountryStats() {
-  
-  document.getElementById("statsCountryTitle").innerHTML = selectedCountry;
- if(selection_date!="Kein") document.getElementById("stats-subtitle").innerHTML = "Until "+selection_date;  
+
+  document.getElementById("statsCountryTitle").innerHTML = selectedCountry + " (Per User)";
+  if (selection_date != "Kein") document.getElementById("stats-subtitle").innerHTML = "Until " + selection_date;
   document.getElementById("swipeLike").innerHTML = "Likes: " + counter_country_swipeLike;
   document.getElementById("swipePass").innerHTML = "Passes: " + counter_country_swipePass;
   document.getElementById("messagesSent").innerHTML = "Messages Sent: " + counter_country_messagesSent;
@@ -366,6 +376,8 @@ function createScatterPlot(filteredData) {
 
 
   })
+  calculateStats_ByCountry(filteredData, selectedCountry, selectedDate);
+ 
   editCountryStats();
 }
 
@@ -502,7 +514,11 @@ function createTimeLine(datingData, covidData) {
     filteredDatingData = datingData.filter(data => data.date <= selection_date);
     d3.selectAll('.bubble').remove();
     plotDataCircles(datingData, filteredDatingData);
-
+    if (!isClickedOnTimeline){
+      mappingColorUser = {}
+      counterColors = 0;
+      isClickedOnTimeline=true;
+    } 
   }
   function plotDataCircles(alldata, filteredData) {
     xVar = document.getElementById("select-x-var").value;

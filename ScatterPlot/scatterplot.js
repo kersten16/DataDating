@@ -37,7 +37,7 @@ let svg = d3.select("#plotSVG")
   .append("g")
   .attr("transform", "translate(50,50)")
 
- 
+
 
 /**
  * Function to Filter the data from the json file by Country (and date)
@@ -336,7 +336,10 @@ function functionGhost() {
 
 }*/
 
+/*
 function addBubbles(allTestData) {
+  
+
 
   let svg2 = d3.select("#plotSVG")
     .style("overflow", "visible") // some tooltips stray outside the SVG border
@@ -353,17 +356,17 @@ function addBubbles(allTestData) {
     .range([heightGraph, 0]);   // my y-axis is 400px high
   // (the max and min are reversed because the 
   // SVG y-value is measured from the top)
-
+  svg2.selectAll(".bubble").attr("fill-opacity", 0.4)
 
   /*
     let categoryColors = {
       "No Measure": "#11111",
-      "Measure 1": "#1f77b4",
+      "Measure 1": "#1f77b4",ˇ
       "Measure 2": "#8c564b",
       "Measure 3": "#235643",
   
     }*/
-
+/*
   svg2.append("g")       // the axis will be contained in an SVG group element
     .attr("id", "yAxis")
     .call(d3.axisLeft(yScale)
@@ -562,7 +565,7 @@ function addBubbles(allTestData) {
 
 
 }
-
+*/
 
 /*function changeTitle() {
 
@@ -611,11 +614,9 @@ var margin = { top: 50, right: 50, bottom: 50, left: 20 }, height = 1600;
 
 const width = 1600;
 
-
-
 function createTimeLine(datingData, covidData) {
   let filteredDatingData = datingData.filter(data => data.date == startDate);
-   
+
   var startDate = new Date(datingData[0].date),
     endDate = new Date(datingData[datingData.length - 1].date);
   const totalDays = (endDate.getTime() - startDate.getTime()) / (1000 * 3600 * 24);
@@ -734,11 +735,13 @@ function createTimeLine(datingData, covidData) {
 
   function updateScatter() {
     colorBubblesGrey();
-    const date = formatDateForData(new Date(label.text()));
-    filteredDatingData = datingData.filter(data => data.date <= date);
+    const selection_date = formatDateForData(new Date(label.text()));
+    // filteredDatingData = datingData.filter(data => data.date <= date);
+    filteredDatingData = datingData.filter(data => data.date <= selection_date);
     d3.selectAll('.bubble').remove();
-    plotDataCircles(filteredDatingData);
-  
+    plotDataCircles(filteredDatingData, selection_date);
+
+
     //   d3.selectAll(".bubble").attr("fill-opacity", 0.4);
     /*const date = formatDateForData(new Date(label.text()));
     filteredDatingData = datingData.filter(data => data.date <= date);
@@ -762,35 +765,28 @@ function createTimeLine(datingData, covidData) {
       })*/
 
   }
- // function addBubbles(allTestData) {
-    function plotDataCircles(allTestData){
-
+  // function addBubbles(allTestData) {
+  function plotDataCircles(allTestData, selection_date) {
+    console.log("selection_date");
+    console.log(selection_date);
     let svg = d3.select("#plotSVG")
       .style("overflow", "visible") // some tooltips stray outside the SVG border
       .append("g")
       .attr("transform", "translate(50,50)")
-  
-  
+
+
     let xScale = d3.scaleLinear()
       .domain([0, 250])   // my x-variable has a max of 2500
       .range([0, 600]);   // my x-axis is 600px wide
-  
+
     let yScale = d3.scaleLinear()
       .domain([0, 120])   // my y-variable has a max of 1200
       .range([heightGraph, 0]);   // my y-axis is 400px high
     // (the max and min are reversed because the 
     // SVG y-value is measured from the top)
-  
-  
-    /*
-      let categoryColors = {
-        "No Measure": "#11111",
-        "Measure 1": "#1f77b4",
-        "Measure 2": "#8c564b",
-        "Measure 3": "#235643",
-    
-      }*/
-  
+
+    svg.selectAll(".bubble").attr("fill-opacity", 0.4)
+
     svg.append("g")       // the axis will be contained in an SVG group element
       .attr("id", "yAxis")
       .call(d3.axisLeft(yScale)
@@ -798,7 +794,7 @@ function createTimeLine(datingData, covidData) {
         .tickFormat(d3.format("d"))
         .tickSizeOuter(0)
       )
-  
+
     svg.append("g")
       .attr("transform", "translate(0," + heightGraph + ")")    // translate x-axis to bottom of chart
       .attr("id", "xAxis")
@@ -807,25 +803,33 @@ function createTimeLine(datingData, covidData) {
         .tickFormat(d3.format("d"))
         .tickSizeOuter(0)
       )
-  
-  
+
+
     svg.selectAll(".bubble")
-    .enter()
+      .enter()
       .data(allTestData)    // bind each element of the data array to one SVG circle
       .join("circle")
       .attr("class", "bubble")
       .attr("cx", d => xScale(d.messagesSent + d.messagesReceived))   // set the x position based on the number of conversationCount
       .attr("cy", d => yScale(d.swipePass + d.swipeLike))   // set the y position based on the number of swipes
       .attr("r", d => Math.sqrt(d.appOpens))  // set the radius based on the article reading time
-      .attr("stroke", d => {
+    
+      
+      .attr("fill", d => {
         if (!mappingColorUser.hasOwnProperty(d.userID)) {
           mappingColorUser[d.userID] = userColors[counterColors++]
-  
+
         }
         return mappingColorUser[d.userID];
       })
-      .attr("fill", d => mappingColorUser[d.userID])
-      .attr("fill-opacity", 1)
+      .attr("fill-opacity", d=>{
+        if(d.date==selection_date){
+          return 1;
+        }else{
+          return 0.4;
+        }
+       
+      })
       .on("mouseover", (e, d) => {    // event listener to show tooltip on hover
         d3.select("#bubble-tip-" + d.userID)  // i'm using the publish time as a unique ID
           .style("display", "block");
@@ -848,8 +852,8 @@ function createTimeLine(datingData, covidData) {
           d.toolTipVisible = false;
         }
       });
-  
-  
+
+
     svg.selectAll(".bubble-tip")
       .data(allTestData)
       .join("g")
@@ -865,7 +869,7 @@ function createTimeLine(datingData, covidData) {
       .attr("fill-opacity", 0.9)
       .attr("width", 180)
       .attr("height", 100)
-  
+
     // SVG does not wrap text
     // so I add a new text element for each line (4 words)
     svg.selectAll(".bubble-tip")
@@ -875,7 +879,7 @@ function createTimeLine(datingData, covidData) {
       .style("font-size", 14)
       .attr("stroke", "none")
       .attr("fill", d => mappingColorUser[d.userID])
-  
+
     svg.selectAll(".bubble-tip")
       .append("text")
       .classed("bubble-tip-yText", true)
@@ -885,7 +889,7 @@ function createTimeLine(datingData, covidData) {
       .style("font-size", 14)
       .attr("stroke", "none")
       .attr("fill", d => mappingColorUser[d.userID])
-  
+
     svg.selectAll(".bubble-tip")
       .append("text")
       .classed("bubble-tip-yText", true)
@@ -895,20 +899,20 @@ function createTimeLine(datingData, covidData) {
       .style("font-size", 14)
       .attr("stroke", "none")
       .attr("fill", d => mappingColorUser[d.userID])
-  
+
     let xVar = document.getElementById("select-x-var").value;
     let yVar = "swipeLike";
     document.getElementById("select-x-var").addEventListener("change", (e) => {
-  
+
       // update the x-variable based on the user selection
       xVar = e.target.value
-  
+
       if (xVar === "userID") {
-  
+
         xScale = d3.scaleTime()
           .domain([d3.min(allTestData, d => d[xVar]), d3.max(allTestData, d => d[xVar])])
           .range([0, 600]);
-  
+
         d3.select("#xAxis")
           .call(d3.axisBottom(xScale)
             .tickFormat(d3.timeFormat("%b %d")))
@@ -916,12 +920,12 @@ function createTimeLine(datingData, covidData) {
         // https://github.com/d3/d3-time-format
       }
       else if (xVar === "category") {
-  
+
         xScale = d3.scaleBand()
           .domain(Object.keys(userColors))
           .range([0, 600])
           .padding(1) // space them out so the bubble appears in the centre
-  
+
         svg.select("#xAxis")
           .call(d3.axisBottom(xScale).tickSize(0))
           .selectAll("text")
@@ -934,7 +938,7 @@ function createTimeLine(datingData, covidData) {
         xScale = d3.scaleLinear()
           .domain([0, d3.max(allTestData, d => d[xVar])])
           .range([0, 600]);
-  
+
         // redraw the x-axis
         svg.select("#xAxis")
           .call(d3.axisBottom(xScale)
@@ -942,31 +946,31 @@ function createTimeLine(datingData, covidData) {
             .tickFormat(d3.format("d"))
             .tickSizeOuter(0)
           )
-  
+
       }
       // transition each circle element
       svg.selectAll(".bubble")
         .transition()
         .duration(1000)
         .attr("cx", (d) => xScale(d[xVar]))
-  
+
       // transition each tooltip
       svg.selectAll(".bubble-tip")
         .transition()
         .duration(1000)
         .attr("transform", d => "translate(" + (xScale(d[xVar]) + 20) + ", " + yScale(d[yVar]) + ")")
     })
-  
+
     document.getElementById("select-y-var").addEventListener("change", (e) => {
-  
+
       // update the x-variable based on the user selection
       yVar = e.target.value
-  
+
       // rescale the x-axis
       yScale = d3.scaleLinear()
         .domain([0, d3.max(allTestData, d => d[yVar])])
         .range([heightGraph, 0]);
-  
+
       // redraw the x-axis
       svg.select("#yAxis")
         .call(d3.axisLeft(yScale)
@@ -974,124 +978,121 @@ function createTimeLine(datingData, covidData) {
           .tickFormat(d3.format("d"))
           .tickSizeOuter(0)
         )
-  
+
       // transition each circle element and tooltip
       svg.selectAll(".bubble")
         .transition()
         .duration(1000)
         .attr("cy", (d) => yScale(d[yVar]))
-  
+
       svg.selectAll(".bubble-tip-yText")
         .text(d => "(" + d[yVar] + " " + yVar + ")")
-  
+
       svg.selectAll(".bubble-tip")
         .attr("transform", d => "translate(" + (xScale(d[xVar]) + 20) + ", " + yScale(d[yVar]) + ")")
     })
-  
-  
-  
-  
+
     colorBubblesGrey();
-  /*  var max= 300;
-    var radius = 600;
-    var currentDate = formatDateForData(new Date(label.text()));
-    var locations = svg.selectAll(".location")
-      .data(filteredDatingData);
-
-    locations
-      .attr('fill', function(d){
-        if(d.date==currentDate) return 'blue';
-        else return 'lightgrey';
-      })
-      .attr('r', function(d){
-        if(d.date==currentDate) return 10;
-        else return 4;
-      })
-      .attr('opacity',function(d){
-        if(d.date==currentDate) return 0.75;
-        else return 0.5;})
-      .attr('stroke-width',2);
+    /*  var max= 300;
+      var radius = 600;
+      var currentDate = formatDateForData(new Date(label.text()));
+      var locations = svg.selectAll(".location")
+        .data(filteredDatingData);
+  
+      locations
+        .attr('fill', function(d){
+          if(d.date==currentDate) return 'blue';
+          else return 'lightgrey';
+        })
+        .attr('r', function(d){
+          if(d.date==currentDate) return 10;
+          else return 4;
+        })
+        .attr('opacity',function(d){
+          if(d.date==currentDate) return 0.75;
+          else return 0.5;})
+        .attr('stroke-width',2);
+        
+  
+      // if filtered dataset has more circles than already existing, transition new ones in
+      locations.enter()
+        .append("circle")
+        .attr("class", "location")
+        .attr('cx', function (d) { return get_xy(d.appOpens/Math.max(d.activeUsers,1)+shift,uniqueListOfCountries.indexOf(d.country),radius,max)[0];})
+        .attr('cy', function (d) { return get_xy(d.appOpens/Math.max(d.activeUsers,1)+shift,uniqueListOfCountries.indexOf(d.country),radius,max)[1];})
+        .attr('r', function(d){
+          if(d.date==currentDate) return 10;
+          else return 4;
+        })
+        .attr('fill', function(d){
+          if(d.date==currentDate) return 'blue';
+          else return 'lightgrey';
+        })
+        .attr('opacity',function(d){
+          if(d.date==currentDate) return 0.75;
+          else return 0.5;})
+        .attr('stroke', function(d){
+           if(d.daysSince>=28){
+            return covidColours[-1];
+         }
+          return covidColours[Math.floor(d.daysSince/7)];
+         })
+        .attr('stroke-width',2)
+        //.append('title').text(d => d.country + ": "+d.date+ "\n"+d.appOpens/Math.max(d.activeUsers,1))
+        .on("mouseover", mouseover)
+        .on("mouseout", mouseout)
+        .on("click", clickon)
+        //.transition()
+        // .duration(200)
+        // .attr('r', 15)
+         .transition()
+         .on("end", function(){
+           d3.select(this).append('title').text(d => d.country + ": "+d.date+ "\n"+d.appOpens/Math.max(d.activeUsers,1));
+         });
+  
+      // if filtered dataset has less circles than already existing, remove
+      locations.exit()
+      .remove();
       
-
-    // if filtered dataset has more circles than already existing, transition new ones in
-    locations.enter()
-      .append("circle")
-      .attr("class", "location")
-      .attr('cx', function (d) { return get_xy(d.appOpens/Math.max(d.activeUsers,1)+shift,uniqueListOfCountries.indexOf(d.country),radius,max)[0];})
-      .attr('cy', function (d) { return get_xy(d.appOpens/Math.max(d.activeUsers,1)+shift,uniqueListOfCountries.indexOf(d.country),radius,max)[1];})
-      .attr('r', function(d){
-        if(d.date==currentDate) return 10;
-        else return 4;
-      })
-      .attr('fill', function(d){
-        if(d.date==currentDate) return 'blue';
-        else return 'lightgrey';
-      })
-      .attr('opacity',function(d){
-        if(d.date==currentDate) return 0.75;
-        else return 0.5;})
-      .attr('stroke', function(d){
-         if(d.daysSince>=28){
-          return covidColours[-1];
-       }
-        return covidColours[Math.floor(d.daysSince/7)];
-       })
-      .attr('stroke-width',2)
-      //.append('title').text(d => d.country + ": "+d.date+ "\n"+d.appOpens/Math.max(d.activeUsers,1))
-      .on("mouseover", mouseover)
-      .on("mouseout", mouseout)
-      .on("click", clickon)
-      //.transition()
-      // .duration(200)
-      // .attr('r', 15)
-       .transition()
-       .on("end", function(){
-         d3.select(this).append('title').text(d => d.country + ": "+d.date+ "\n"+d.appOpens/Math.max(d.activeUsers,1));
-       });
-
-    // if filtered dataset has less circles than already existing, remove
-    locations.exit()
-    .remove();
-    
-    function clickon (){
-      openScatterplot(d3.select(this).select('title').text().split(':')[0],currentDate);
-    }
-
-    function mouseover () {
-      svg.selectAll(".location")
-      .attr('opacity', 0.25);
-        
-      d3.select(this)
-          .raise();
-        
-      d3.select(this)
-          .attr("stroke", "#333")
-          .attr("stroke-width", 3)
-          .attr('opacity', 1);  
-      };
-    
-      function mouseout () {
-        var currentDate = formatDateForData(new Date(label.text()));
-        //const avgUsers = d3.select(this).node();
-        if(!d3.select(this).select('title').text().includes(currentDate)){
-          d3.select(this)
-            .lower();
-        }
-
+      function clickon (){
+        openScatterplot(d3.select(this).select('title').text().split(':')[0],currentDate);
+      }
+  
+      function mouseover () {
         svg.selectAll(".location")
-            .attr('opacity',function(d){
-              if(d.date==currentDate) return 0.75;
-              else return 0.5;})
-            .attr('stroke', function(d){
-               if(d.daysSince>=28){
-                return covidColours[-1];
-             }
-              return covidColours[Math.floor(d.daysSince/7)];
-             })
-             .attr('stroke-width', 2);
-
-      };
-*/
+        .attr('opacity', 0.25);
+          
+        d3.select(this)
+            .raise();
+          
+        d3.select(this)
+            .attr("stroke", "#333")
+            .attr("stroke-width", 3)
+            .attr('opacity', 1);  
+        };
+      
+        function mouseout () {
+          var currentDate = formatDateForData(new Date(label.text()));
+          //const avgUsers = d3.select(this).node();
+          if(!d3.select(this).select('title').text().includes(currentDate)){
+            d3.select(this)
+              .lower();
+          }
+  
+          svg.selectAll(".location")
+              .attr('opacity',function(d){
+                if(d.date==currentDate) return 0.75;
+                else return 0.5;})
+              .attr('stroke', function(d){
+                 if(d.daysSince>=28){
+                  return covidColours[-1];
+               }
+                return covidColours[Math.floor(d.daysSince/7)];
+               })
+               .attr('stroke-width', 2);
+  
+        };
+  */
   }
 
 }

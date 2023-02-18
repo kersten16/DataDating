@@ -45,7 +45,7 @@ d3.json("../docs/data/" + name_file + ".json", d => {
   //Create Scatterplot with filtered data
   createScatterPlot(filterData);
   createTimeLine(filterData);
- 
+
 })
 
 //Create SVG
@@ -114,7 +114,7 @@ function calculateStats_ByCountry(data_array, givenCountry, givenDate) {
     */   }
     // }
   }
-  
+
   //Divide By User
   counter_country_swipeLike = Math.ceil(counter_country_swipeLike / Object.keys(mappingColorUser).length);
   /* counter_country_swipePass = counter_country_swipePass + data_array[i].swipePass;
@@ -377,7 +377,7 @@ function createScatterPlot(filteredData) {
 
   })
   calculateStats_ByCountry(filteredData, selectedCountry, selectedDate);
- 
+
   editCountryStats();
 }
 
@@ -387,23 +387,23 @@ function colorBubblesGrey() {
   svg.selectAll(".bubble").attr("fill-opacity", 0.4)
 }
 
+var timelineMargin = { top: 50, right: 50, bottom: 0, left: 50 },
+  timelineWidth = 2 * width / 3 - timelineMargin.left - timelineMargin.right,
+  timelineHeight = 200 - timelineMargin.top - timelineMargin.bottom;
 
+var svg_timeline = d3.select("#timeLine")
+  .append("svg")
+  .attr("width", timelineWidth + timelineMargin.left + timelineMargin.right)
+  .attr("height", timelineHeight + timelineMargin.top + timelineMargin.bottom);
 
 function createTimeLine(datingData, covidData) {
   let filteredDatingData = datingData.filter(data => data.date == startDate);
 
-  var startDate = new Date(datingData[0].date),
-    endDate = new Date(datingData[datingData.length - 1].date);
+  var startDate = new Date(datingData[0].date);
+  var endDate = new Date(datingData[datingData.length - 1].date);
   const totalDays = (endDate.getTime() - startDate.getTime()) / (1000 * 3600 * 24);
 
-  var timelineMargin = { top: 50, right: 50, bottom: 0, left: 50 },
-    timelineWidth = 2 * width / 3 - timelineMargin.left - timelineMargin.right,
-    timelineHeight = 200 - timelineMargin.top - timelineMargin.bottom;
 
-  var svg = d3.select("#timeLine")
-    .append("svg")
-    .attr("width", timelineWidth + timelineMargin.left + timelineMargin.right)
-    .attr("height", timelineHeight + timelineMargin.top + timelineMargin.bottom);
   //.attr('transform', 'translate(' + (timelineMargin.left-(width)/2) + ',' + 0 + ')');
   //FIX ALIGNMENT ISSUES
   ////////// slider //////////
@@ -420,7 +420,7 @@ function createTimeLine(datingData, covidData) {
     .range([0, targetValue])
     .clamp(true);
 
-  var slider = svg.append("g")
+  var slider = svg_timeline.append("g")
     .attr("class", "slider")
     .attr("transform", "translate(" + timelineMargin.left + "," + timelineHeight / 5 + ")");
 
@@ -436,7 +436,7 @@ function createTimeLine(datingData, covidData) {
       .on("start.interrupt", function () { slider.interrupt(); })
       .on("start drag", function (e) {
         currentValue = e.x;
-        updateSlider(timeX.invert(currentValue));
+        updateSlider(currentValue);
       })
     );
 
@@ -454,7 +454,10 @@ function createTimeLine(datingData, covidData) {
 
   var handle = slider.insert("circle", ".track-overlay")
     .attr("class", "handle")
+    .attr("fill", "#fff")
     .attr("r", 9);
+
+
 
   var label = slider.append("text")
     .attr("class", "label")
@@ -462,6 +465,33 @@ function createTimeLine(datingData, covidData) {
     .text(formatDate(startDate))
     .attr("transform", "translate(0," + (-15) + ")")
 
+
+  /*  var plot = svg_timeline.append("g")
+      .attr("class", "plot")
+      .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+  
+    var locations = plot.selectAll(".location")
+      .data(datingData);
+    var x = d3.scaleTime()
+      .domain([startDate, endDate])
+      .range([0, targetValue])
+      .clamp(true);
+  
+    locations.enter()
+      .append("circle")
+      .attr("class", "location")
+      .attr("cx", function (d) { return x(d.date); })
+      .attr("cy", 10)
+      .style("fill", function (d) { return d3.hsl(d.date / 1000000000, 0.8, 0.8) })
+      .style("stroke", function (d) { return d3.hsl(d.date / 1000000000, 0.7, 0.7) })
+      .style("opacity", 0.5)
+      .attr("r", 8)
+      .transition()
+      .duration(400)
+      .attr("r", 25)
+      .transition()
+      .attr("r", 8);
+  */
   /* playButton
      .on("click", function () {
        var button = d3.select(this);
@@ -478,7 +508,7 @@ function createTimeLine(datingData, covidData) {
      });*/
 
   function step() {
-    updateSlider(timeX.invert(currentValue));
+    updateSlider(currentValue);
     currentValue = currentValue + (targetValue / totalDays);
     if (currentValue > targetValue) {
       moving = false;
@@ -489,12 +519,21 @@ function createTimeLine(datingData, covidData) {
     }
   }
 
-  function updateSlider(h) {
+  function updateSlider(currentValue) {
+    var h = timeX.invert(currentValue);
+    label
+    .attr("x", timeX(h))
+    .text(formatDate(h));
     // update position and text of label according to slider scale
     handle.attr("cx", timeX(h));
-    label
-      .attr("x", timeX(h))
-      .text(formatDate(h));
+    if ("2020-01-01" == formatDateForData(new Date(label.text()))) {
+      handle.attr("fill", "#e6194b");
+    } else {
+      handle.attr("fill", "#fff");
+    }
+
+
+  
     // filter data set and redraw plot
 
     //d3.select('#radial').select('svg').remove()
@@ -514,11 +553,11 @@ function createTimeLine(datingData, covidData) {
     filteredDatingData = datingData.filter(data => data.date <= selection_date);
     d3.selectAll('.bubble').remove();
     plotDataCircles(datingData, filteredDatingData);
-    if (!isClickedOnTimeline){
+    if (!isClickedOnTimeline) {
       mappingColorUser = {}
       counterColors = 0;
-      isClickedOnTimeline=true;
-    } 
+      isClickedOnTimeline = true;
+    }
   }
   function plotDataCircles(alldata, filteredData) {
     xVar = document.getElementById("select-x-var").value;
@@ -556,6 +595,8 @@ function createTimeLine(datingData, covidData) {
         )*/
 
     methodToBeNamed(yScale, xScale, filteredData, selection_date);
+
+
 
     calculateStats_ByCountry(filteredData, selectedCountry);
     editCountryStats();

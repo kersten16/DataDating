@@ -35,12 +35,12 @@ let uniqueListOfMeasures = [];
     uniqueListOfMeasures = [...new Set(listOfMeasures).values()];
     console.log(uniqueListOfMeasures);
       //a.appOpens/(Math.max(a.activeUsers,1)),b.appOpens/(Math.max(b.activeUsers,1))));
-    createVisual(datingData);
+    createTimeLine(datingData);
     //createTimeLine(data);
   });
 
   /***********************************CREATE TIMELINE **************************************/
-  function createVisual(datingData, covidData){
+  function createTimeLine(datingData, covidData){
       var startDate = new Date(datingData[0].date),
       endDate = new Date(datingData[datingData.length-1].date);
       const totalDays=(endDate.getTime() - startDate.getTime()) / (1000 * 3600 * 24);

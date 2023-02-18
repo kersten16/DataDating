@@ -213,9 +213,9 @@ let uniqueListOfMeasures = [];
     var svg = d3.select('#radial').append('svg')
     .attr('width', width + margin.left + margin.right)
     .attr('height', height + margin.top + margin.bottom)
-    .attr('transform', 'translate(' + -250+ ',0)')
+    .attr('transform', 'translate(' + -240+ ',' + -100 +')')
     .append('g')
-    .attr('transform', 'translate(' + (radius-130)+ ',' + 100 + ')');
+    .attr('transform', 'translate(' + (radius-75)+ ',' + 200 + ')');
     
 
     for(i in uniqueListOfCountries){
@@ -249,11 +249,13 @@ let uniqueListOfMeasures = [];
       textbox.append('rect')
           .raise()
           .attr('x', function(){
+            let width=this.parentNode.firstChild.getComputedTextLength()+5;
             if(get_anchor(i)=='end'){
-              return  plabel[0] - 130;
+              
+              return  plabel[0] - width;
             }
             if(get_anchor(i)=='middle'){
-              return  plabel[0] - 50;
+              return  plabel[0] - width/2;
             }
             if(get_anchor(i)=='start'){
               return  plabel[0] - 5;
@@ -261,21 +263,21 @@ let uniqueListOfMeasures = [];
 
           })
           .attr('y', function(){
-            return plabel[1]-20;
+            return plabel[1]-40;
 
           })
-          .attr('width', 150)
-          .attr('height', 50)
+          .attr('width', function(){return Math.max(this.parentNode.firstChild.getComputedTextLength()+10,75);})
+          .attr('height', 60)
           .attr('opacity', 0)
           .on("mouseover", function(e){
             var date = formatDateForData(new Date(label.text()));
-            console.log(e.target.parentNode.id)
             extrafilteredDatingData = datingData.filter(data => data.date == date).filter(newData => newData.country==e.target.parentNode.id);
             return createCloudChart(extrafilteredDatingData[0]);
           } )
-          .on("mouseout", async function(){
-            await delay(2000);
-            return d3.selectAll('.cloud').remove();
+          .on("mouseout", async function(e){
+            console.log("mouseout", Date());
+            await delay(500);
+            return d3.selectAll('#'+e.target.parentNode.id+'_cloud').remove();
           });
           
     }
@@ -411,6 +413,7 @@ let uniqueListOfMeasures = [];
         .attr('height', listenTo)
         .append('g')
         .attr('class', 'cloud')
+        .attr('id', item["country"]+'_cloud')
         .attr('transform', `translate(${coord[0]}, ${coord[1]})`);
 
       var images = [], numSwipes = Math.floor(item['swipes']/10), swipeRem=Math.ceil(item['swipes']%10), numMsg = Math.floor(item['messages']/10), msgRem=Math.ceil(item['messages']%10),maxImages = numSwipes+numMsg, padding=1;

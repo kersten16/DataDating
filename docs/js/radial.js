@@ -40,122 +40,159 @@ let uniqueListOfMeasures = [];
   });
 
   /***********************************CREATE TIMELINE **************************************/
-  function createVisual(datingData, covidData){
+  function createVisual(datingData){
+    var timeLineLabel;
+    function createTimeLine(chartType, handleDate){
       var startDate = new Date(datingData[0].date),
       endDate = new Date(datingData[datingData.length-1].date);
       const totalDays=(endDate.getTime() - startDate.getTime()) / (1000 * 3600 * 24);
       //console.log(startDate, endDate)
 
-    var timelineMargin = { top: 50, right: 50, bottom: 0, left: 50 },
-      timelineWidth = 2*width/3 - timelineMargin.left - timelineMargin.right,
-      timelineHeight = 200 - timelineMargin.top - timelineMargin.bottom;
+      var timelineMargin = { top: 50, right: 50, bottom: 0, left: 50 },
+        timelineWidth = 2*width/3 - timelineMargin.left - timelineMargin.right,
+        timelineHeight = 200 - timelineMargin.top - timelineMargin.bottom;
 
-    var svg = d3.select("#timeLine")
-      .append("svg")
-      .attr("width", timelineWidth + timelineMargin.left + timelineMargin.right)
-      .attr("height", timelineHeight + timelineMargin.top + timelineMargin.bottom);
-      //.attr('transform', 'translate(' + (timelineMargin.left-(width)/2) + ',' + 0 + ')');
-  //FIX ALIGNMENT ISSUES
-    ////////// slider //////////
+      var svg = d3.select("#timeLine"+chartType)
+        .append("svg")
+        .attr("width", timelineWidth + timelineMargin.left + timelineMargin.right)
+        .attr("height", timelineHeight + timelineMargin.top + timelineMargin.bottom);
+        //.attr('transform', 'translate(' + (timelineMargin.left-(width)/2) + ',' + 0 + ')');
+    //FIX ALIGNMENT ISSUES
+      ////////// slider //////////
 
-    var moving = false;
-    var currentValue = 0;
-    var targetValue = timelineWidth;
+      var moving = false;
+      var currentValue = 0;
+      var targetValue = timelineWidth;
 
-    var playButton = d3.select("#play-button");
-    playButton.attr('class', 'position-absolute top-100 start-50');
+      var playButton = d3.select("#play-button");
+      playButton.attr('class', 'position-absolute top-100 start-50');
 
-    var timeX = d3.scaleTime()
-      .domain([startDate, endDate])
-      .range([0, targetValue])
-      .clamp(true);
+      var timeX = d3.scaleTime()
+        .domain([startDate, endDate])
+        .range([0, targetValue])
+        .clamp(true);
 
-    var slider = svg.append("g")
-      .attr("class", "slider")
-      .attr("transform", "translate(" + timelineMargin.left + "," + timelineHeight / 5 + ")");
+      var slider = svg.append("g")
+        .attr("class", "slider")
+        .attr("transform", "translate(" + timelineMargin.left + "," + timelineHeight / 5 + ")");
 
-    slider.append("line")
-      .attr("class", "track")
-      .attr("x1", timeX.range()[0])
-      .attr("x2", timeX.range()[1])
-      .select(function () { return this.parentNode.appendChild(this.cloneNode(true)); })
-      .attr("class", "track-inset")
-      .select(function () { return this.parentNode.appendChild(this.cloneNode(true)); })
-      .attr("class", "track-overlay")
-      .call(d3.drag()
-        .on("start.interrupt", function () { slider.interrupt(); })
-        .on("start drag", function (e) {
-          currentValue = e.x;
-          updateSlider(timeX.invert(currentValue));
-        })
-      );
+      slider.append("line")
+        .attr("class", "track")
+        .attr("x1", timeX.range()[0])
+        .attr("x2", timeX.range()[1])
+        .select(function () { return this.parentNode.appendChild(this.cloneNode(true)); })
+        .attr("class", "track-inset")
+        .select(function () { return this.parentNode.appendChild(this.cloneNode(true)); })
+        .attr("class", "track-overlay")
+        .call(d3.drag()
+          .on("start.interrupt", function () { slider.interrupt(); })
+          .on("start drag", function (e) {
+            currentValue = e.x;
+            updateSlider(timeX.invert(currentValue));
+          })
+        );
 
-    slider.insert("g", ".track-overlay")
-      .attr("class", "ticks")
-      .attr("transform", "translate(0," + 18 + ")")
-      .selectAll("text")
-      .data(timeX.ticks(10))
-      .enter()
-      .append("text")
-      .attr("x", timeX)
-      .attr("y", 10)
-      .attr("text-anchor", "middle")
-      .text(function (d) { return formatDateIntoMonth(d); });
+      slider.insert("g", ".track-overlay")
+        .attr("class", "ticks")
+        .attr("transform", "translate(0," + 18 + ")")
+        .selectAll("text")
+        .data(timeX.ticks(10))
+        .enter()
+        .append("text")
+        .attr("x", timeX)
+        .attr("y", 10)
+        .attr("text-anchor", "middle")
+        .text(function (d) { return formatDateIntoMonth(d); });
 
-    var handle = slider.insert("circle", ".track-overlay")
-      .attr("class", "handle")
-      .attr("r", 9);
+      var handle = slider.insert("circle", ".track-overlay")
+        .attr("class", "handle")
+        .attr("r", 9);
 
-    var label = slider.append("text")
-      .attr("class", "label")
-      .attr("text-anchor", "middle")
-      .text(formatDate(startDate))
-      .attr("transform", "translate(0," + (-15) + ")")
+      timeLineLabel = slider.append("text")
+        .attr("class", "label")
+        .attr("text-anchor", "middle")
+        .text(formatDate(startDate))
+        .attr("transform", "translate(0," + (-15) + ")")
 
-      playButton
-        .on("click", function () {
-          var button = d3.select(this);
-          if (button.text() == "Pause") {
-            moving = false;
-            clearInterval(timer);
-            // timer = 0;
-            button.text("Play");
-          } else {
-            moving = true;
-            timer = setInterval(step, 1000);
-            button.text("Pause");
-          }
-        });
+        playButton
+          .on("click", function () {
+            var button = d3.select(this);
+            if (button.text() == "Pause") {
+              moving = false;
+              clearInterval(timer);
+              // timer = 0;
+              button.text("Play");
+            } else {
+              moving = true;
+              timer = setInterval(step, 1000);
+              button.text("Pause");
+            }
+          });
 
-    function step() {
-      updateSlider(timeX.invert(currentValue));
-      currentValue = currentValue + (targetValue /totalDays );
-      if (currentValue > targetValue) {
-        moving = false;
-        currentValue = 0;
-        clearInterval(timer);
-        // timer = 0;
-        playButton.text("Play");
+      function step() {
+        updateSlider(timeX.invert(currentValue));
+        currentValue = currentValue + (targetValue /totalDays );
+        if (currentValue > targetValue) {
+          moving = false;
+          currentValue = 0;
+          clearInterval(timer);
+          // timer = 0;
+          playButton.text("Play");
+        }
       }
-    }
 
-    function updateSlider(h) {
-      // update position and text of label according to slider scale
-      handle.attr("cx", timeX(h));
-      label
-        .attr("x", timeX(h))
-        .text(formatDate(h));
-      // filter data set and redraw plot
+      function updateSlider(h) {
+        // update position and text of label according to slider scale
+        handle.attr("cx", timeX(h));
+        timeLineLabel
+          .attr("x", timeX(h))
+          .text(formatDate(h));
+        // filter data set and redraw plot
 
-      //d3.select('#radial').select('svg').remove()
-      if(scatterPlotOpen){
-        updateScatter();
-      }else{
-        updateRadial();
+        //d3.select('#radial').select('svg').remove()
+        if(scatterPlotOpen){
+          updateScatter();
+        }else{
+          updateRadial();
+        }
+          
       }
-        
+      handle.attr("cx", timeX((handleDate)));
+      timeLineLabel
+        .attr("x", timeX((handleDate)))
+        .text(formatDate((handleDate)));
+
     }
+      
   /***************************************CREATE RADIAL GRAPH*********************************************/
+  const covidColours=['#e31010','#ff5f03','#f5a105','#f2ed85','lightgrey']
+  function createLegend(svg){
+      // create a list of keys
+      var keys = ["<= 7 days", "8 - 14 days", "15 - 21 days", "22 - 28 days", "> 28 days"]
+
+      // Add one dot in the legend for each name.
+      svg.selectAll("mydots")
+        .data(keys)
+        .enter()
+        .append("circle")
+          .attr("cx", 1000)
+          .attr("cy", function(d,i){ return -100 + i*25}) // 100 is where the first dot appears. 25 is the distance between dots
+          .attr("r", 8)
+          .style("fill", function(d){ return covidColours[keys.indexOf(d)];})
+
+      // Add one dot in the legend for each name.
+      svg.selectAll("mylabels")
+        .data(keys)
+        .enter()
+        .append("text")
+          .attr("x", 1020)
+          .attr("y", function(d,i){ return -100 + i*25}) // 100 is where the first dot appears. 25 is the distance between dots
+          .attr("fill", function(d){ return covidColours[keys.indexOf(d)];})
+          .style('font-size', '20px')
+          .text(function(d){ return d})
+          .attr("text-anchor", "left")
+          .style("alignment-baseline", "middle")
+  }
 
     function rotated(i){
       var rotated_i = parseInt(i) -1;
@@ -203,7 +240,7 @@ let uniqueListOfMeasures = [];
   }
 
   /************************** MAKE RADIAL CHART *******************************/
-    const covidColours=['#e31010','#ed8224','#f5a11b','#fcc326','lightgrey']
+    createTimeLine("Radial", new Date(datingData[0].date));
     var max= 300;
     var ticks= (max/10)+1
     var radius = 600;
@@ -217,7 +254,7 @@ let uniqueListOfMeasures = [];
     .append('g')
     .attr('transform', 'translate(' + (radius-75)+ ',' + 200 + ')');
     
-
+    createLegend(svg);
     for(i in uniqueListOfCountries){
       
       var currCountry = uniqueListOfCountries[i];
@@ -274,7 +311,7 @@ let uniqueListOfMeasures = [];
           .on("mouseover", function(e){
             //d3.selectAll('#'+e.target.parentNode.id+'_cloud').remove();
             if(this.persist){return;}
-            var date = formatDateForData(new Date(label.text()));
+            var date = formatDateForData(new Date(timeLineLabel.text()));
             extrafilteredDatingData = datingData.filter(data => data.date == date).filter(newData => newData.country==e.target.parentNode.id);
             return createCloudChart(extrafilteredDatingData[0]);
           } )
@@ -307,7 +344,7 @@ let uniqueListOfMeasures = [];
     function plotDataCircles(filteredDatingData){
       var max= 300;
       var radius = 600;
-      var currentDate = formatDateForData(new Date(label.text()));
+      var currentDate = formatDateForData(new Date(timeLineLabel.text()));
       var locations = svg.selectAll(".location")
         .data(filteredDatingData);
 
@@ -367,7 +404,8 @@ let uniqueListOfMeasures = [];
       .remove();
       
       function clickon (){
-        openScatterplot(d3.select(this).select('title').text().split(':')[0],currentDate);
+        //console.log(new Date(currentDate));
+        openScatterplot(d3.select(this).select('title').text().split(':')[0],new Date(currentDate));
       }
 
       function mouseover () {
@@ -384,7 +422,7 @@ let uniqueListOfMeasures = [];
         };
       
         function mouseout () {
-          var currentDate = formatDateForData(new Date(label.text()));
+          var currentDate = formatDateForData(new Date(timeLineLabel.text()));
           //const avgUsers = d3.select(this).node();
           if(!d3.select(this).select('title').text().includes(currentDate)){
             d3.select(this)
@@ -408,7 +446,7 @@ let uniqueListOfMeasures = [];
     }
 
     function updateRadial() {
-      const date = formatDateForData(new Date(label.text()));
+      const date = formatDateForData(new Date(timeLineLabel.text()));
       filteredDatingData = datingData.filter(data => data.date <= date);
       d3.selectAll('.cloud').remove();
       d3.selectAll('.textBB').attr('stroke',null);
@@ -417,7 +455,7 @@ let uniqueListOfMeasures = [];
       // }
       plotDataCircles(filteredDatingData);
     }
-
+/*********************************** CREATE CLOUD CHART *****************************************/
     function createCloudChart(item){
       const cloudWidth = Math.ceil(((item['swipes']+item['messages'])/10)), cloudHeight = Math.ceil(((item['swipes']+item['messages'])/10));
       const listenTo = Math.min(cloudWidth, cloudHeight);
@@ -437,6 +475,7 @@ let uniqueListOfMeasures = [];
       var msgIconPath= "https://kersten16.github.io/InfoVis/docs/icons/message.png";
       var swipeIconPath = "https://kersten16.github.io/InfoVis/docs/icons/thumbs-up.png";
       console.log(item);
+
       for(let i = 0; i< maxImages; i++){
         //const weight = 10;
         
@@ -476,6 +515,7 @@ let uniqueListOfMeasures = [];
       // function to scale the images
       const scaleSize = d3.scaleLinear().domain([1,4 ]).range([1, 4]).clamp(true);
       // append the icons
+
       let vizImages = cloud.selectAll('.image-cloud-image')
         .data(images)
         .enter()
@@ -495,7 +535,7 @@ let uniqueListOfMeasures = [];
       // set the function that will update the view on each 'tick'
       .on('tick', ticked)
       .force('center', d3.forceCenter())
-      .force('cramp', d3.forceManyBody().strength(1))
+      .force('cramp', d3.forceManyBody().strength(3))
       // collition force for rects
       .force('collide', rectCollide().size(d=> {
       const s = scaleSize(d.weight);
@@ -513,7 +553,7 @@ let uniqueListOfMeasures = [];
         var nodes, sizes, masses
         var size = constant([0, 0])
         var strength = 1
-        var iterations = 1
+        var iterations = 3
 
         function force() {
             var node, size, mass, xi, yi
@@ -611,7 +651,7 @@ let uniqueListOfMeasures = [];
             
   }
   
-  function openScatterplot(country, startDate){
+  function openScatterplot(country, handleDate){
     // $("#radial").addClass("disabledbutton");
     scatterPlotOpen=true;
     
@@ -636,7 +676,7 @@ let uniqueListOfMeasures = [];
 
       var filterData = data.filter(data => data.country == country);
 
-      createScatterPlot(filterData);
+      createScatterPlot(filterData, handleDate);
     })
 
     console.log(country);
@@ -669,9 +709,9 @@ let uniqueListOfMeasures = [];
     }
 
   }
-  function createScatterPlot(allTestData) {
-
-
+  function createScatterPlot(allTestData, handleDate) {
+    console.log(handleDate);
+    createTimeLine("Scatter",handleDate);
 
     let svg = d3.select("#plotSVG")
       .style("overflow", "visible") // some tooltips stray outside the SVG border

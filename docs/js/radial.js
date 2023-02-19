@@ -549,7 +549,8 @@ d3.json("data/allUsers_ByDate.json", d => {
           
           //  openScatterplot(d3.select(this).select('title').text().split(':')[0],new Date(currentDate));
         }*/
-        window.location.href = "http://127.0.0.1:5501/ScatterPlot/index.html?country="+d3.select(this).select('title').text().split(':')[0]+"&date="+currentDate;
+        console.log();
+        window.location.href = window.location.href.split("/docs")[0]+"/ScatterPlot/index.html?country="+d3.select(this).select('title').text().split(':')[0]+"&date="+currentDate;
          
       }
 

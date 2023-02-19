@@ -625,6 +625,7 @@ function createTimeLine(datingData, covidData) {
 function goBackToStart(){
   var url = new URL(window.location.href);
   var date = url.searchParams.get("date");
-  window.location.href = "http://127.0.0.1:5501/docs/?date="+date;
+  console.log()
+ window.location.href = window.location.href.split("/ScatterPlot")[0]+"/docs/?date="+date;
        
 }

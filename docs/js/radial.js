@@ -193,13 +193,13 @@ d3.json("data/allUsers_ByDate.json", d => {
   var yScale;
 
   function createLegend(svg){
+    var msgIconPath= "https://kersten16.github.io/InfoVis/docs/icons/message.png";
+    var swipeIconPath = "https://kersten16.github.io/InfoVis/docs/icons/thumbs-up.png";
 
     var defs = svg.append( 'defs' );
-
     // append filter element
     var filter = defs.append( 'filter' )
                     .attr( 'id', 'blur' ) /// !!! important - define id to reference it later
-
     // append gaussian blur to filter
     filter.append( 'feGaussianBlur' )
           .attr( 'in', 'SourceGraphic' )
@@ -214,7 +214,7 @@ d3.json("data/allUsers_ByDate.json", d => {
       .attr("x", 925)
       .attr("y", -200)
       .attr("width", 245)
-      .attr("height", 200)
+      .attr("height", 250)
       .style("fill", "#1c2045")
       //.attr("fill-opacity",.9)
       .attr("filter", "url(#blur)");
@@ -242,7 +242,9 @@ d3.json("data/allUsers_ByDate.json", d => {
           .attr("cx", 990)
           .attr("cy", function(d,i){ return -120 + i*25}) // 100 is where the first dot appears. 25 is the distance between dots
           .attr("r", 8)
-          .style("fill", function(d){ return covidColours[keys.indexOf(d)];});
+          .style("stroke", function(d){ return covidColours[keys.indexOf(d)];})
+          .style("stroke-width", 3)
+          .style("fill-opacity",0);
 
       // Add one dot in the legend for each name.
       svg.selectAll("mylabels")
@@ -256,6 +258,38 @@ d3.json("data/allUsers_ByDate.json", d => {
           .text(function(d){ return d})
           .attr("text-anchor", "left")
           .style("alignment-baseline", "middle");
+
+      svg.append('svg:image')
+        .attr("x", 978)
+        .attr("y", -8)
+        .attr('height', 25)
+        .attr('width', 25)
+        .attr('href', swipeIconPath);
+
+        svg.append('svg:image')
+        .attr("x", 978)
+        .attr("y", 20)
+        .attr('height', 25)
+        .attr('width', 25)
+        .attr('href',  msgIconPath);
+
+        svg.append("text")
+        .attr("x", 1010)
+        .attr("y", 5) // 100 is where the first dot appears. 25 is the distance between dots
+        .attr("fill", "white")
+        .style('font-size', '20px')
+        .text("10 swipes")
+        .attr("text-anchor", "left")
+        .style("alignment-baseline", "middle");
+        svg.append("text")
+        .attr("x", 1010)
+        .attr("y", 30) // 100 is where the first dot appears. 25 is the distance between dots
+        .attr("fill", "white")
+        .style('font-size', '20px')
+        .text("10 messages")
+        .attr("text-anchor", "left")
+        .style("alignment-baseline", "middle");
+
   }
 
     function rotated(i){
@@ -567,7 +601,7 @@ d3.json("data/allUsers_ByDate.json", d => {
       const listenTo = Math.min(cloudWidth, cloudHeight);
       // create svg and g DOM elements;
       //let coord=get_xy(item['appOpens']/Math.max(item['activeUsers'],1)+shift,uniqueListOfCountries.indexOf(item['country']),radius,max);
-      var coord = get_xy(max+shift*3, uniqueListOfCountries.indexOf(item['country']), radius, max);
+      var coord = get_xy(max+shift*2.5, uniqueListOfCountries.indexOf(item['country']), radius, max);
       let cloud = svg
         .attr('xmlns', 'http://www.w3.org/2000/svg')
         .attr('width', listenTo)
@@ -619,7 +653,7 @@ d3.json("data/allUsers_ByDate.json", d => {
     
     
       // function to scale the images
-      const scaleSize = d3.scaleLinear().domain([1,4 ]).range([1, 4]).clamp(true);
+      const scaleSize = d3.scaleLinear().domain([2,6]).range([2,6]).clamp(true);
       // append the icons
 
       let vizImages = cloud.selectAll('.image-cloud-image')

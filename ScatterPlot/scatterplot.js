@@ -279,11 +279,51 @@ function createBubbles(yScale, xScale, filteredData, selection_date) {
      .attr("fill", d => mappingColorUser[d.userID])
      */
 }
+const covidMeasures=["Lockdown",'Movement restrictions','Social distancing','Public health measures','None']
+
+let categoryCovid = {
+  "Lockdown": "#e31010",
+  "Movement restrictions": "#ff5f03",
+  "Social distancing": "#f5a105",
+  "Public health measures": "#f2ed85",
+  "None":"lightgrey",
+
+}
+function createCovidLegend(){
+ 
+  for(var c=0; c<covidMeasures.length;c++){
+    const div_entry = document.createElement("div");
+    const span_Color = document.createElement("span");
+    span_Color.classList.add("dot");
+    span_Color.style.setProperty('background-color', categoryCovid[covidMeasures[c]]);
+    const node = document.createElement("p");
+    const textnode = document.createTextNode(covidMeasures[c]);
+    node.appendChild(textnode);
+    span_Color.classList.add("horizontal");
+    node.classList.add("horizontal");
+    div_entry.appendChild(span_Color);
+    div_entry.appendChild(node);
+  
+   // document.getElementById("legend-covid").appendChild(node);
+    document.getElementById("legend-covid").appendChild(div_entry);
+  
+  }
+ 
+}
 /**
  * 
  * @param {*} filteredData 
  */
 function createScatterPlot(filteredData) {
+  //<span class="dot"></span>
+  //  let legendCovid = document.getElementById("legend-covid").value;
+  
+  createCovidLegend();
+ 
+
+
+
+
   let xScale = d3.scaleLinear()
     .domain([0, d3.max(filteredData, d => d[xVar])])   // my x-variable has a max of 2500
     .range([0, 600]);   // my x-axis is 600px wide
@@ -505,22 +545,26 @@ function createTimeLine(datingData, covidData) {
     // update position and text of label according to slider scale
     handle.attr("cx", timeX(h));
     var iscovidOnDate = false;
+    var measurement="None";
     var selectedDateOnTimeline = formatDateForData(new Date(label.text()));
     covidData_ByCity.then(covidData => {
       for (i = 0; i < covidData.length; i++) {
         if (covidData[i].date == selectedDateOnTimeline) {
           iscovidOnDate = true;
+          measurement=covidData[i].category;
+          console.log(measurement);
         }
       }
+      
       if (iscovidOnDate) {
-        handle.attr("fill", "#e6194b");
+        handle.attr("fill",categoryCovid[measurement]);
       } else {
-        handle.attr("fill", "#fff");
+        handle.attr("fill", "lightgrey");
       }
 
     }
     )
- 
+
 
     updateScatter();
 

@@ -10,15 +10,46 @@ select {
   font-size: 16px;
 }
 
-#country-stats{
+#country-stats {
   position: absolute;
-  top: 40px; right: 60px;
+  top: 40px;
+  right: 60px;
   border-style: solid;
   height: auto;
   width: 200px;
-  border-color: #0096FF; 
+  border-color: #0096FF;
   padding-top: 10px;
   padding-bottom: 20px;
   padding-left: 20px;
   padding-right: 20px;
+}
+#legend-covid {
+  position: absolute;
+  top: 340px;
+  right: 60px;
+  border-style: solid;
+  height: auto;
+  width: 200px;
+  border-color: #ff003c;
+  padding-top: 10px;
+  padding-bottom: 20px;
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
+/*
+body {
+  background-color: #222222;
+  }*/
+
+.dot {
+  height: 25px;
+  width: 25px;
+ /* background-color: #bbb;*/
+  border-radius: 50%;
+  margin-right:10px;
+  display: inline-block;
+}
+.horizontal{
+  display:inline-block
 }

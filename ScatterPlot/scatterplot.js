@@ -41,6 +41,7 @@ var url_country = url.searchParams.get("country");
 selectedCountry = url_country;
 document.getElementById("titleCountry").innerHTML = selectedCountry;
 var url_date = new Date(url.searchParams.get("date"));
+selectedDate=url_date;
  console.log(url_date)
 //currentValue = date;
 //updateSlider(currentValue);
@@ -147,7 +148,7 @@ function calculateStats_ByCountry(data_array, givenCountry, givenDate) {
  * @param {*} numberSwipes 
  * @param {*} numberconversationCount 
  */
-function editCountryStats(selectedDate) {
+function editCountryStats(passedDate) {
 
  /* document.getElementById("statsCountryTitle").innerHTML = selectedCountry + " (Per User)";
   if (selection_date != "Kein") document.getElementById("stats-subtitle").innerHTML = "Until " + selection_date;
@@ -158,7 +159,7 @@ function editCountryStats(selectedDate) {
   document.getElementById("appOpens").innerHTML = "App Opens: " + counter_country_appOpens;
 */
    document.getElementById("statsCountryTitle").innerHTML = "Total for Country: "+user_counter+" users";
-   if (selectedDate != "Kein") document.getElementById("stats-subtitle").innerHTML = "2017-01-01 to " + formatDateForData(selectedDate);
+   if (selectedDate != "Kein") document.getElementById("stats-subtitle").innerHTML = "2017-01-01 to " + formatDateForData(new Date(passedDate));
    document.getElementById("swipeLike").innerHTML = "Likes: " + counter_country_swipeLike;
    document.getElementById("swipePass").innerHTML = "Passes: " + counter_country_swipePass;
    document.getElementById("messagesSent").innerHTML = "Messages Sent: " + counter_country_messagesSent;
@@ -443,7 +444,7 @@ function createScatterPlot(filteredData) {
 
   })
   calculateStats_ByCountry(filteredData, selectedCountry, selectedDate);
-
+  console.log(selectedDate+"2")
   editCountryStats(new Date(selectedDate));
 }
 
@@ -632,7 +633,7 @@ if(url_date);
 
 
     createBubbles(yScale, xScale, filteredData, selection_date);
-
+    console.log(selection_date+"1")
     calculateStats_ByCountry(filteredData, selectedCountry);
     editCountryStats(selection_date);
   }

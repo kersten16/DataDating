@@ -1063,7 +1063,7 @@ function editCountryStats(selectedDate) {
       isClickedOnTimeline = true;
     }
     calculateStats_ByCountry(filteredUserData);
-    editCountryStats(selectedDate);
+    editCountryStats(new Date(timeLineLabel2.text()));
   }
 }
 

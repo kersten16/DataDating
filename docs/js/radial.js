@@ -493,14 +493,10 @@ d3.json("data/allUsers_ByDate.json", d => {
         .attr("class", "location")
         .attr('cx', function (d) { return get_xy(d.appOpens/Math.max(d.activeUsers,1)+shift,uniqueListOfCountries.indexOf(d.country),radius,max)[0];})
         .attr('cy', function (d) { return get_xy(d.appOpens/Math.max(d.activeUsers,1)+shift,uniqueListOfCountries.indexOf(d.country),radius,max)[1];})
-        .attr('r', function(d){
-          if(d.date==currentDate) return 10;
-          else return 4;
-        })
         .attr('fill', function(d){
           if(d.date==currentDate) return '#0aad7d';
           else return 'darkgrey';
-        })
+        })        
         .attr('opacity',function(d){
           if(d.date==currentDate) return 0.75;
           else return 0.5;})
@@ -515,10 +511,15 @@ d3.json("data/allUsers_ByDate.json", d => {
         .on("mouseover", mouseover)
         .on("mouseout", mouseout)
         .on("click", clickon)
-        //.transition()
-        // .duration(200)
-        // .attr('r', 15)
-         .transition()
+        .attr("r",2)
+        .transition()
+        .duration(200)
+        .attr('r',25)
+        .transition()
+        .attr('r', function(d){
+          if(d.date==currentDate) return 10;
+          else return 4;
+        })
          .on("end", function(){
            d3.select(this).append('title').text(d => d.country + ": "+d.date+ "\n"+d.appOpens/Math.max(d.activeUsers,1));
          });

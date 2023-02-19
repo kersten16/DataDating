@@ -107,6 +107,7 @@ d3.json("data/allUsers_ByDate.json", d => {
         .attr("x", timeX)
         .attr("y", 10)
         .attr("text-anchor", "middle")
+        .attr("fill", "lightgrey")
         .text(function (d) { return formatDateIntoMonth(d); });
 
       var handle = slider.insert("circle", ".track-overlay")
@@ -117,6 +118,7 @@ d3.json("data/allUsers_ByDate.json", d => {
         .attr("class", "label")
         .attr("text-anchor", "middle")
         .text(formatDate(startDate))
+        .attr("fill", "lightgrey")
         .attr("transform", "translate(0," + (-15) + ")")
 
         playButton
@@ -365,7 +367,7 @@ d3.json("data/allUsers_ByDate.json", d => {
           .attr('dx', 2)
           .attr('class', 'label')
           .style('font-weight', 'lighter')
-          .style('fill', 'darkgrey')
+          .style('fill', 'lightgrey')
           .text(value);
       for(tick = 1; tick <= ticks; tick++) {
           var value = (max * tick) / (ticks-1);
@@ -406,8 +408,8 @@ d3.json("data/allUsers_ByDate.json", d => {
           .attr('text-anchor', get_anchor(i))
           .attr('class', 'label')
           .style('fill',function(){
-            if(i==0){ return "darkgrey";}
-            return "#1c2045";
+            if(i==0){ return "lightgrey";}
+            return "white";
           })
           .text(currCountry)
           .style('font-size', '22px')
@@ -479,8 +481,8 @@ d3.json("data/allUsers_ByDate.json", d => {
 
       locations
         .attr('fill', function(d){
-          if(d.date==currentDate) return 'blue';
-          else return 'lightgrey';
+          if(d.date==currentDate) return '#0aad7d';
+          else return 'darkgrey';
         })
         .attr('r', function(d){
           if(d.date==currentDate) return 10;
@@ -503,8 +505,8 @@ d3.json("data/allUsers_ByDate.json", d => {
           else return 4;
         })
         .attr('fill', function(d){
-          if(d.date==currentDate) return 'blue';
-          else return 'lightgrey';
+          if(d.date==currentDate) return '#0aad7d';
+          else return 'darkgrey';
         })
         .attr('opacity',function(d){
           if(d.date==currentDate) return 0.75;

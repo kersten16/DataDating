@@ -529,8 +529,7 @@ d3.json("data/allUsers_ByDate.json", d => {
       .remove();
       
       function clickon (){
-        //console.log(new Date(currentDate));
-       /* if(scatterPlotOpen){
+         /* if(scatterPlotOpen){
           d3.select("#scatter").style("display","none");
           d3.select("#scatter").select("#timeLineScatter").selectAll("*").remove();
           d3.select("#scatter").select("#yAxis").remove();
@@ -543,6 +542,7 @@ d3.json("data/allUsers_ByDate.json", d => {
           
           //  openScatterplot(d3.select(this).select('title').text().split(':')[0],new Date(currentDate));
         }*/
+
         window.location.href = window.location.href.split("/docs")[0]+"/ScatterPlot/index.html?country="+d3.select(this).select('title').text().split(':')[0]+"&date="+currentDate;
          
       }

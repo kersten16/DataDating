@@ -37,11 +37,6 @@ select {
   padding-right: 20px;
 }
 
-/*
-body {
-  background-color: #222222;
-  }*/
-
 .dot {
   height: 25px;
   width: 25px;
@@ -64,4 +59,26 @@ body {
   font-size: 10px;
   color:#dcdcdc;
 }
+
+.track-inset {
+  stroke: #dcdcdc;
+  stroke-width: 8px;
+}
+.track-overlay {
+  pointer-events: stroke;
+  stroke-width: 50px;
+  stroke: transparent;
+  cursor: crosshair;
+  
+}
+.handle {
+    stroke: #000;
+    stroke-opacity: 0.5;
+    stroke-width: 1.25px;
+  }
+  .track {
+    stroke: #ffffff;
+    stroke-opacity: 0.3;
+    stroke-width: 10px;
+  }
 

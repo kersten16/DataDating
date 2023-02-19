@@ -41,7 +41,7 @@ var url_country = url.searchParams.get("country");
 selectedCountry = url_country;
 document.getElementById("titleCountry").innerHTML = selectedCountry;
 var url_date = new Date(url.searchParams.get("date"));
-selectedDate=url_date;
+selectedDate = url_date;
 
 //currentValue = date;
 //updateSlider(currentValue);
@@ -64,7 +64,7 @@ var covidData_ByCity = d3.json("../docs/data/allDates_Covid.json", d => {
   //Filter the data by country and Date
   var filterCovidData = filterData_ByCountry(covidData, selectedCountry);
   //Create Scatterplot with filtered data
- 
+
   return filterCovidData;
 
 })
@@ -112,8 +112,8 @@ function filterData_ByCountry(data_array, givenCountry) {
  */
 function calculateStats_ByCountry(data_array, givenCountry, givenDate) {
   var listOfUsers = data_array.map(d => d.userID);
-     uniqueUsers = [...new Set(listOfUsers).values()];
-     user_counter=uniqueUsers.length;
+  uniqueUsers = [...new Set(listOfUsers).values()];
+  user_counter = uniqueUsers.length;
   counter_country_swipeLike = 0
   counter_country_swipePass = 0
   counter_country_messagesSent = 0
@@ -148,21 +148,21 @@ function calculateStats_ByCountry(data_array, givenCountry, givenDate) {
  */
 function editCountryStats(passedDate) {
 
- /* document.getElementById("statsCountryTitle").innerHTML = selectedCountry + " (Per User)";
-  if (selection_date != "Kein") document.getElementById("stats-subtitle").innerHTML = "Until " + selection_date;
-  document.getElementById("swipeLike").innerHTML = "Likes: " + counter_country_swipeLike;
-  document.getElementById("swipePass").innerHTML = "Passes: " + counter_country_swipePass;
-  document.getElementById("messagesSent").innerHTML = "Messages Sent: " + counter_country_messagesSent;
-  document.getElementById("messagesReceived").innerHTML = "Messages Received: " + counter_country_messagesReceived;
-  document.getElementById("appOpens").innerHTML = "App Opens: " + counter_country_appOpens;
-*/
-   document.getElementById("statsCountryTitle").innerHTML = "Total for Country: "+user_counter+" users";
-   if (selectedDate != "Kein") document.getElementById("stats-subtitle").innerHTML = "2017-01-01 to " + formatDateForData(new Date(passedDate));
+  /* document.getElementById("statsCountryTitle").innerHTML = selectedCountry + " (Per User)";
+   if (selection_date != "Kein") document.getElementById("stats-subtitle").innerHTML = "Until " + selection_date;
    document.getElementById("swipeLike").innerHTML = "Likes: " + counter_country_swipeLike;
    document.getElementById("swipePass").innerHTML = "Passes: " + counter_country_swipePass;
    document.getElementById("messagesSent").innerHTML = "Messages Sent: " + counter_country_messagesSent;
    document.getElementById("messagesReceived").innerHTML = "Messages Received: " + counter_country_messagesReceived;
    document.getElementById("appOpens").innerHTML = "App Opens: " + counter_country_appOpens;
+ */
+  document.getElementById("statsCountryTitle").innerHTML = "Total for Country: " + user_counter + " users";
+  if (selectedDate != "Kein") document.getElementById("stats-subtitle").innerHTML = "2017-01-01 to " + formatDateForData(new Date(passedDate));
+  document.getElementById("swipeLike").innerHTML = "Likes: " + counter_country_swipeLike;
+  document.getElementById("swipePass").innerHTML = "Passes: " + counter_country_swipePass;
+  document.getElementById("messagesSent").innerHTML = "Messages Sent: " + counter_country_messagesSent;
+  document.getElementById("messagesReceived").innerHTML = "Messages Received: " + counter_country_messagesReceived;
+  document.getElementById("appOpens").innerHTML = "App Opens: " + counter_country_appOpens;
 
 
 }
@@ -382,7 +382,7 @@ function createScatterPlot(filteredData) {
     // rescale the x-axis
     xScale = d3.scaleLinear()
       .domain([0, d3.max(filteredData, d => {
-        if(xVar=="date"){
+        if (xVar == "date") {
           return d[timeX(url_date)];
         }
         return d[xVar];
@@ -403,8 +403,8 @@ function createScatterPlot(filteredData) {
       .transition()
       .duration(1000)
       .attr("cx", (d) => {
-     
-        if(xVar=="date"){
+
+        if (xVar == "date") {
           return xScale(timeX(url_date))
         }
         return xScale(d[xVar]);
@@ -480,7 +480,7 @@ var svg_timeline = d3.select("#timeLine")
  */
 function createTimeLine(datingData, covidData) {
   let filteredDatingData = datingData.filter(data => data.date == startDate);
-if(url_date);
+
   var startDate = new Date(datingData[0].date);
   var endDate = new Date(datingData[datingData.length - 1].date);
   const totalDays = (endDate.getTime() - startDate.getTime()) / (1000 * 3600 * 24);
@@ -532,32 +532,12 @@ if(url_date);
     .attr("fill", "lightgrey")
     .text(function (d) { return formatDateIntoMonth(d); });
 
-    covidData_ByCity.then(covidData => {
-      console.log("TEst"+covidData[0].date)
-      console.log("TEst"+url_date)
-      for (i = 0; i < covidData.length; i++) {
-       
-        if(covidData[i].category!="None"){
-         
-          var covid_measures = slider.insert("circle", ".track-overlay")
-          .attr("class", "covid_measures")
-          .attr("fill", "#550A35")
-          .attr("cx",timeX(url_date))
-          .attr("r", 9);
-        }
-      
-      }
-    });
-    var covid_measures = slider.insert("circle", ".track-overlay")
-    .attr("class", "covid_measures")
-    .attr("fill", "#550A35")
-    .attr("cx",timeX(url_date))
-    .attr("r", 9);
-  
+
+
   var handle = slider.insert("circle", ".track-overlay")
     .attr("class", "handle")
     .attr("fill", "#fff")
-    .attr("cx",timeX(url_date))
+    .attr("cx", timeX(url_date))
     .attr("r", 9);
 
   var label = slider.append("text")
@@ -568,7 +548,7 @@ if(url_date);
     .attr("transform", "translate(0," + (-15) + ")")
     .attr("x", timeX(url_date))
 
-   
+
   /* playButton
      .on("click", function () {
        var button = d3.select(this);
@@ -598,27 +578,37 @@ if(url_date);
 
 
   function updateSlider(currentValue) {
-   
+
     var h = timeX.invert(currentValue);
     label
       .attr("x", timeX(h))
       .text(formatDate(h));
     // update position and text of label according to slider scale
-    handle.attr("cx", timeX(h));
+   
     var iscovidOnDate = false;
-    var measurement="None";
+    var measurement = "None";
     var selectedDateOnTimeline = formatDateForData(new Date(label.text()));
     covidData_ByCity.then(covidData => {
       for (i = 0; i < covidData.length; i++) {
+
+        if (covidData[i].category != "None") {
+
+          var covid_measures = slider.insert("circle", ".track-overlay")
+            .attr("class", "covid_measures")
+            .attr("fill", categoryCovid[covidData[i].category])
+            //  .attr("cx",timeX(covidData[i].date))
+            .attr("cx", timeX(new Date(covidData[i].date)))
+            .attr("r", 5);
+        }
         if (covidData[i].date == selectedDateOnTimeline) {
           iscovidOnDate = true;
-          measurement=covidData[i].category;
-        
+          measurement = covidData[i].category;
+
         }
       }
-      
+
       if (iscovidOnDate) {
-        handle.attr("fill",categoryCovid[measurement]);
+        handle.attr("fill", categoryCovid[measurement]);
       } else {
         handle.attr("fill", "lightgrey");
       }
@@ -627,6 +617,13 @@ if(url_date);
     )
 
 
+    /* var covid_measures = slider.insert("circle", ".track-overlay")
+     .attr("class", "covid_measures")
+     .attr("fill", "#550A35")
+     .attr("cx",timeX(url_date))
+     .attr("r", 9);*/
+
+     handle.attr("cx", timeX(h));
     updateScatter();
 
   }
@@ -665,7 +662,7 @@ if(url_date);
 
 
     createBubbles(yScale, xScale, filteredData, selection_date);
-   
+
     calculateStats_ByCountry(filteredData, selectedCountry);
     editCountryStats(selection_date);
   }
@@ -676,7 +673,7 @@ if(url_date);
 function goBackToStart() {
   var url = new URL(window.location.href);
   var date = url.searchParams.get("date");
- 
+
   window.location.href = window.location.href.split("/ScatterPlot")[0] + "/docs/?date=" + date;
 
 }

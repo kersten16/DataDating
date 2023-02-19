@@ -16,8 +16,8 @@ var isClickedOnTimeline = false;
 
 //Set Possibilities
 let dates = ["2020-01-01", "2019-12-31", "2021-01-01", "2022-01-01"]
-let userColors = ['#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4', '#46f0f0', '#f032e6', '#bcf60c', '#fabebe', '#008080', '#e6beff', '#9a6324', '#fffac8', '#800000', '#aaffc3', '#808000', '#ffd8b1', '#000075', '#808080', '#ffffff', '#000000'];
-
+//let userColors = ['#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4', '#46f0f0', '#f032e6', '#bcf60c', '#fabebe', '#008080', '#e6beff', '#9a6324', '#fffac8', '#800000', '#aaffc3', '#808000', '#ffd8b1', '#000075', '#808080', '#ffffff', '#000000'];
+let userColors = ['#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4', '#46f0f0', '#f032e6', '#bcf60c', '#fabebe', '#008080', '#e6beff', '#9a6324', '#fffac8', '#800000', '#aaffc3', '#808000', '#ffd8b1', '#000075', '#9933cc', '#333399', '#00b3e6', '#e6b333', '#3366e6', '#999966', '#00cc99', '#b34d4d', '#80b300', '#809900', '#e6b3b3', '#6680b3', '#66991a', '#ff99e6', '#ccff1a', '#ff1a66', '#e6331a', '#33ffcc', '#66994d', '#b366cc', '#4d8000', '#b33300', '#cc80cc', '#66664d', '#991a00', '#e666ff', '#4db3ff', '#1ab399', '#e666b3', '#33991a', '#cc9999', '#b3b31a', '#00e680', '#4d8066', '#809980', '#e6ff80', '#1aFF33', '#999933', '#FF3380', '#CCCC00', '#66e64d', '#4d80cc', '#9900b3', '#e64d66'];
 
 //Set Selections
 var selectedCountry = "Belgium";
@@ -381,7 +381,12 @@ function createScatterPlot(filteredData) {
 
     // rescale the x-axis
     xScale = d3.scaleLinear()
-      .domain([0, d3.max(filteredData, d => d[xVar])])
+      .domain([0, d3.max(filteredData, d => {
+        if(xVar=="date"){
+          return d[timeX(url_date)];
+        }
+        return d[xVar];
+      })])
       .range([0, 600]);
 
     // redraw the x-axis
@@ -397,7 +402,13 @@ function createScatterPlot(filteredData) {
     svg.selectAll(".bubble")
       .transition()
       .duration(1000)
-      .attr("cx", (d) => xScale(d[xVar]))
+      .attr("cx", (d) => {
+     
+        if(xVar=="date"){
+          return xScale(timeX(url_date))
+        }
+        return xScale(d[xVar]);
+      })
 
     // transition each tooltip
     svg.selectAll(".bubble-tip")
@@ -521,6 +532,28 @@ if(url_date);
     .attr("fill", "lightgrey")
     .text(function (d) { return formatDateIntoMonth(d); });
 
+    covidData_ByCity.then(covidData => {
+      console.log("TEst"+covidData[0].date)
+      console.log("TEst"+url_date)
+      for (i = 0; i < covidData.length; i++) {
+       
+        if(covidData[i].category!="None"){
+         
+          var covid_measures = slider.insert("circle", ".track-overlay")
+          .attr("class", "covid_measures")
+          .attr("fill", "#550A35")
+          .attr("cx",timeX(url_date))
+          .attr("r", 9);
+        }
+      
+      }
+    });
+    var covid_measures = slider.insert("circle", ".track-overlay")
+    .attr("class", "covid_measures")
+    .attr("fill", "#550A35")
+    .attr("cx",timeX(url_date))
+    .attr("r", 9);
+  
   var handle = slider.insert("circle", ".track-overlay")
     .attr("class", "handle")
     .attr("fill", "#fff")
@@ -535,6 +568,7 @@ if(url_date);
     .attr("transform", "translate(0," + (-15) + ")")
     .attr("x", timeX(url_date))
 
+   
   /* playButton
      .on("click", function () {
        var button = d3.select(this);
@@ -564,6 +598,7 @@ if(url_date);
 
 
   function updateSlider(currentValue) {
+   
     var h = timeX.invert(currentValue);
     label
       .attr("x", timeX(h))

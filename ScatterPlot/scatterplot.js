@@ -35,16 +35,24 @@ var margin = { top: 50, right: 50, bottom: 50, left: 20 }, height = 1600;
 
 const width = 1600;
 
-//Load Data
+//Load Data Dating
 d3.json("../docs/data/" + name_file + ".json", d => {
 }).then(data => {
-  //Calculate the stats of that country on that date
-  //TODO: Whole time
   //Filter the data by country and Date
   var filterData = filterData_ByCountry(data, selectedCountry);
   //Create Scatterplot with filtered data
   createScatterPlot(filterData);
   createTimeLine(filterData);
+})
+
+//Load Covid Data of City
+var covidData_ByCity = d3.json("../docs/data/allDates_Covid.json", d => {
+}).then(covidData => {
+  //Filter the data by country and Date
+  var filterCovidData = filterData_ByCountry(covidData, selectedCountry);
+  //Create Scatterplot with filtered data
+  // console.log(filterCovidData);
+  return filterCovidData;
 
 })
 
@@ -106,22 +114,16 @@ function calculateStats_ByCountry(data_array, givenCountry, givenDate) {
       counter_country_messagesSent = counter_country_messagesSent + data_array[i].messagesSent;
       counter_country_messagesReceived = counter_country_messagesReceived + data_array[i].messagesReceived;
       counter_country_appOpens = counter_country_appOpens + data_array[i].appOpens;
-
-
-      /*
-      counter_countryswipes = counter_countryswipes + data_array[i].swipeLike + data_array[i].swipePass;
-      counter_countryconversationCount = counter_countryconversationCount + data_array[i].messagesReceived + data_array[i].messagesSent;
-    */   }
+    }
     // }
   }
 
   //Divide By User
   counter_country_swipeLike = Math.ceil(counter_country_swipeLike / Object.keys(mappingColorUser).length);
-  /* counter_country_swipePass = counter_country_swipePass + data_array[i].swipePass;
-   counter_country_messagesSent = counter_country_messagesSent + data_array[i].messagesSent;
-   counter_country_messagesReceived = counter_country_messagesReceived + data_array[i].messagesReceived;
-   counter_country_appOpens = counter_country_appOpens + data_array[i].appOpens;
- */
+  counter_country_swipePass = Math.ceil(counter_country_swipePass / Object.keys(mappingColorUser).length);
+  counter_country_messagesSent = Math.ceil(counter_country_messagesSent / Object.keys(mappingColorUser).length);
+  counter_country_messagesReceived = Math.ceil(counter_country_messagesReceived / Object.keys(mappingColorUser).length);
+  counter_country_appOpens = Math.ceil(counter_country_appOpens / Object.keys(mappingColorUser).length);
 
 }
 
@@ -142,22 +144,22 @@ function editCountryStats() {
 
 
 }
-/*
-let xVar = document.getElementById("select-x-var").value;
-let yVar = "messages";
 
-*/
 let xVar = document.getElementById("select-x-var").value;
 let yVar = document.getElementById("select-y-var").value;
 
-
-function methodToBeNamed(yScale, xScale, filteredData, selection_date) {
-
+/**
+ * 
+ * @param {*} yScale 
+ * @param {*} xScale 
+ * @param {*} filteredData 
+ * @param {*} selection_date 
+ */
+function createBubbles(yScale, xScale, filteredData, selection_date) {
 
   svg.selectAll(".bubble")
     .enter()
     .data(filteredData)    // bind each element of the data array to one SVG circle
-
     .join("circle")
     .attr("class", "bubble")
     .attr("cx", d => xScale(d[xVar]))   // set the x position based on the number of conversationCount
@@ -277,10 +279,11 @@ function methodToBeNamed(yScale, xScale, filteredData, selection_date) {
      .attr("fill", d => mappingColorUser[d.userID])
      */
 }
-
+/**
+ * 
+ * @param {*} filteredData 
+ */
 function createScatterPlot(filteredData) {
-
-
   let xScale = d3.scaleLinear()
     .domain([0, d3.max(filteredData, d => d[xVar])])   // my x-variable has a max of 2500
     .range([0, 600]);   // my x-axis is 600px wide
@@ -305,7 +308,7 @@ function createScatterPlot(filteredData) {
       .tickFormat(d3.format("d"))
       .tickSizeOuter(0))
 
-  methodToBeNamed(yScale, xScale, filteredData, selection_date);
+  createBubbles(yScale, xScale, filteredData, selection_date);
 
 
   document.getElementById("select-x-var").addEventListener("change", (e) => {
@@ -381,8 +384,10 @@ function createScatterPlot(filteredData) {
   editCountryStats();
 }
 
-
-function colorBubblesGrey() {
+/**
+ * 
+ */
+function changeBubblesOpacity() {
   //svg.selectAll(".bubble").attr("fill", d => "#e6e6e6")//grey
   svg.selectAll(".bubble").attr("fill-opacity", 0.4)
 }
@@ -396,6 +401,11 @@ var svg_timeline = d3.select("#timeLine")
   .attr("width", timelineWidth + timelineMargin.left + timelineMargin.right)
   .attr("height", timelineHeight + timelineMargin.top + timelineMargin.bottom);
 
+/**
+ * 
+ * @param {*} datingData 
+ * @param {*} covidData 
+ */
 function createTimeLine(datingData, covidData) {
   let filteredDatingData = datingData.filter(data => data.date == startDate);
 
@@ -411,7 +421,7 @@ function createTimeLine(datingData, covidData) {
   var moving = false;
   var currentValue = 0;
   var targetValue = timelineWidth;
- 
+
   var timeX = d3.scaleTime()
     .domain([startDate, endDate])
     .range([0, targetValue])
@@ -490,22 +500,34 @@ function createTimeLine(datingData, covidData) {
   function updateSlider(currentValue) {
     var h = timeX.invert(currentValue);
     label
-    .attr("x", timeX(h))
-    .text(formatDate(h));
+      .attr("x", timeX(h))
+      .text(formatDate(h));
     // update position and text of label according to slider scale
     handle.attr("cx", timeX(h));
-    if ("2020-01-01" == formatDateForData(new Date(label.text()))) {
-      handle.attr("fill", "#e6194b");
-    } else {
-      handle.attr("fill", "#fff");
+    var iscovidOnDate = false;
+    var selectedDateOnTimeline = formatDateForData(new Date(label.text()));
+    covidData_ByCity.then(covidData => {
+      for (i = 0; i < covidData.length; i++) {
+        if (covidData[i].date == selectedDateOnTimeline) {
+          iscovidOnDate = true;
+        }
+      }
+      if (iscovidOnDate) {
+        handle.attr("fill", "#e6194b");
+      } else {
+        handle.attr("fill", "#fff");
+      }
+
     }
+    )
+ 
 
     updateScatter();
 
   }
 
   function updateScatter() {
-    colorBubblesGrey();
+    changeBubblesOpacity();
     selection_date = formatDateForData(new Date(label.text()));
     // filteredDatingData = datingData.filter(data => data.date <= date);
     filteredDatingData = datingData.filter(data => data.date <= selection_date);
@@ -527,22 +549,24 @@ function createTimeLine(datingData, covidData) {
       .attr("transform", "translate(50,50)")
 
     xScale = d3.scaleLinear()
-     .domain([0, d3.max(alldata, d => d[xVar])])
-     .range([0, 600]);   // my x-axis is 600px wide
+      .domain([0, d3.max(alldata, d => d[xVar])])
+      .range([0, 600]);   // my x-axis is 600px wide
 
     yScale = d3.scaleLinear()
       .domain([0, d3.max(alldata, d => d[yVar])])
-       .range([heightGraph, 0]);   // my y-axis is 400px high
+      .range([heightGraph, 0]);   // my y-axis is 400px high
     // (the max and min are reversed because the 
     // SVG y-value is measured from the top)
-  
 
-    methodToBeNamed(yScale, xScale, filteredData, selection_date);
+
+    createBubbles(yScale, xScale, filteredData, selection_date);
 
 
 
     calculateStats_ByCountry(filteredData, selectedCountry);
     editCountryStats();
   }
+
+
 
 }

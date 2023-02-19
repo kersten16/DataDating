@@ -35,22 +35,25 @@ var margin = { top: 50, right: 50, bottom: 50, left: 20 }, height = 1600;
 
 const width = 1600;
 var url = new URL(window.location.href);
-  var c = url.searchParams.get("country");
- // console.log(c)
-  selectedCountry=c;
-  document.getElementById("titleCountry").innerHTML = selectedCountry;
-  
-  
+var url_country = url.searchParams.get("country");
+// console.log(c)
+selectedCountry = url_country;
+document.getElementById("titleCountry").innerHTML = selectedCountry;
+var url_date = new Date(url.searchParams.get("date"));
+ console.log(url_date)
+//currentValue = date;
+//updateSlider(currentValue);
+
 //Load Data Dating
 d3.json("../docs/data/" + name_file + ".json", d => {
 }).then(data => {
-  
+
   //Filter the data by country and Date
   var filterData = filterData_ByCountry(data, selectedCountry);
   //Create Scatterplot with filtered data
   createScatterPlot(filterData);
   createTimeLine(filterData);
- 
+
 })
 
 //Load Covid Data of City
@@ -287,19 +290,19 @@ function createBubbles(yScale, xScale, filteredData, selection_date) {
      .attr("fill", d => mappingColorUser[d.userID])
      */
 }
-const covidMeasures=["Lockdown",'Movement restrictions','Social distancing','Public health measures','None']
+const covidMeasures = ["Lockdown", 'Movement restrictions', 'Social distancing', 'Public health measures', 'None']
 
 let categoryCovid = {
   "Lockdown": "#550A35",
   "Movement restrictions": "#810541",
   "Social distancing": "#B3446C",
   "Public health measures": "#D16587",
-  "None":"lightgrey",
+  "None": "lightgrey",
 
 }
-function createCovidLegend(){
- 
-  for(var c=0; c<covidMeasures.length;c++){
+function createCovidLegend() {
+
+  for (var c = 0; c < covidMeasures.length; c++) {
     const div_entry = document.createElement("div");
     const span_Color = document.createElement("span");
     span_Color.classList.add("dot");
@@ -311,12 +314,12 @@ function createCovidLegend(){
     node.classList.add("horizontal");
     div_entry.appendChild(span_Color);
     div_entry.appendChild(node);
-  
-   // document.getElementById("legend-covid").appendChild(node);
+
+    // document.getElementById("legend-covid").appendChild(node);
     document.getElementById("legend-covid").appendChild(div_entry);
-  
+
   }
- 
+
 }
 /**
  * 
@@ -325,9 +328,9 @@ function createCovidLegend(){
 function createScatterPlot(filteredData) {
   //<span class="dot"></span>
   //  let legendCovid = document.getElementById("legend-covid").value;
-  
+
   createCovidLegend();
- 
+
 
 
 
@@ -456,7 +459,7 @@ var svg_timeline = d3.select("#timeLine")
  */
 function createTimeLine(datingData, covidData) {
   let filteredDatingData = datingData.filter(data => data.date == startDate);
-
+if(url_date);
   var startDate = new Date(datingData[0].date);
   var endDate = new Date(datingData[datingData.length - 1].date);
   const totalDays = (endDate.getTime() - startDate.getTime()) / (1000 * 3600 * 24);
@@ -505,18 +508,22 @@ function createTimeLine(datingData, covidData) {
     .attr("x", timeX)
     .attr("y", 10)
     .attr("text-anchor", "middle")
+    .attr("fill", "lightgrey")
     .text(function (d) { return formatDateIntoMonth(d); });
 
   var handle = slider.insert("circle", ".track-overlay")
     .attr("class", "handle")
     .attr("fill", "#fff")
+    .attr("cx",timeX(url_date))
     .attr("r", 9);
 
   var label = slider.append("text")
     .attr("class", "label")
     .attr("text-anchor", "middle")
-    .text(formatDate(startDate))
+    .text(formatDate(url_date))
+    .attr("fill", "lightgrey")
     .attr("transform", "translate(0," + (-15) + ")")
+    .attr("x", timeX(url_date))
 
   /* playButton
      .on("click", function () {
@@ -544,6 +551,7 @@ function createTimeLine(datingData, covidData) {
       /*  playButton.text("Play");*/
     }
   }
+
 
   function updateSlider(currentValue) {
     var h = timeX.invert(currentValue);
@@ -613,19 +621,17 @@ function createTimeLine(datingData, covidData) {
 
     createBubbles(yScale, xScale, filteredData, selection_date);
 
-
-
     calculateStats_ByCountry(filteredData, selectedCountry);
     editCountryStats();
   }
 
-  
+
 
 }
-function goBackToStart(){
+function goBackToStart() {
   var url = new URL(window.location.href);
   var date = url.searchParams.get("date");
   console.log()
- window.location.href = window.location.href.split("/ScatterPlot")[0]+"/docs/?date="+date;
-       
+  window.location.href = window.location.href.split("/ScatterPlot")[0] + "/docs/?date=" + date;
+
 }

@@ -17,30 +17,53 @@
 		<!-- "Average number of times a user opened their online dating application by country" -->
 	</div>
 	<div id ="scatter">
-		<div id="timeLineScatter" class="responsive-svg-container" >
+		<div class="float-container">
+			<div class="float-child">
+				<h1 id= "plotTitle"></h1>
+			</div>
+			<div class="float-child">
+				<div class = "float-container" id="country-stats">
+					<h2 style=" color: #0096FF;" class="solid" id="statsCountryTitle"></h2>
+					<h4  id="stats-subtitle"></h4>
+					<div class="float-child">
+						<p id="swipeLike"></p>
+						<p id="swipePass"></p>
+						<p id="appOpens"></p>
+					</div>
+					<div class="float-child">
+						<p id="messagesSent"></p>
+						<p id="messagesReceived"></p>
+					</div>
+	
+				</div>
+			</div>
+		</div>
+		
+		<div id="plot-wrapper" style="position: relative; overflow: visible; margin: 10px 200px;">
+			<svg id="plotSVG" width=1700 height=800></svg>
+			<select id="select-y-var" style="position: absolute; top:150px; left:0px;">
+				<!--<option value="swipes" >Swipes</option>-->
+				<option value="swipePass">Passes</option>
+				<option value="swipeLike"selected>Likes</option>
+				<option value="messagesSent">Messages Sent</option>
+				<option value="messagesReceived">Messages Received</option>
+				<option value="appOpens">Open</option>
+			</select>
+			<select id="select-x-var" style="position: absolute; bottom:0px; right: 0px;">
+				<!--<option value="messages">Messages</option>-->
+				<option value="messagesSent">Messages Sent</option>
+				<option value="messagesReceived">Messages Received</option>
+	
+				<option value="appOpens"selected >Open</option>
+			<!--	<option value="swipes">Swipes</option>-->
+				<option value="swipePass">Passes</option>
+				<option value="swipeLike">Likes</option>
+
+			</select>
+		</div>
+			<div id="timeLineScatter" class="responsive-svg-container" >
 			<button id="play-button" >Play</button>
 		</div>
-		<div id="plot-wrapper" style="position: relative; overflow: visible; margin: 10px 200px;">
-			<svg id="plotSVG" width=700 height=500></svg>
-			<select id="select-y-var" style="position: absolute; top:0px; left:0px;" >
-				<option value="swipes" selected>Swipes</option>
-				<option value="swipe_passes">Passes</option>
-				<option value="swipe_likes">Likes</option>
-				<option value="messages">Messages</option>
-				<option value="appOpens">Open</option>
-			</select>
-			<select id="select-x-var" style="position: absolute; bottom:0px; left: 600px;">
-				<option value="messages"selected>Messages</option>
-				<option value="appOpens">Open</option>
-				<option value="swipes" >Swipes</option>
-				<option value="swipe_passes">Passes</option>
-				<option value="swipe_likes">Likes</option>
-
-			</select>
-		</div>
-		<div id="tooltip"></div>
-
-		<svg id="map" width="400" height="300"></svg>
 	</div>
 	<!-- <script src="js/timeline.js"></script> -->
 	<!-- <script src="js/Scatterplot.js"></script>	 -->

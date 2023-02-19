@@ -1,6 +1,6 @@
 // Set the time format
 //const parseTime = d3.timeParse("%Y");
-
+d3.select("#scatter").style("display","none");
 var formatDateIntoMonth = d3.timeFormat("%m/%y");
 var formatDate = d3.timeFormat("%b %d %Y");
 var formatDateForData = d3.timeFormat("%Y-%m-%d")
@@ -13,6 +13,10 @@ let uniqueListOfCountries= [];
 let uniqueListOfMeasures = [];
 
 // Load the dataset and formatting variables
+d3.json("data/allUsers_ByDate.json", d => {
+}).then(userData => {
+  userData = userData.sort((a, b) => d3.ascending(a.date, b.date));
+ 
   d3.json("data/allDates_Combined.json", d => {
     return {
       date:d[i].date,
@@ -35,14 +39,15 @@ let uniqueListOfMeasures = [];
     uniqueListOfMeasures = [...new Set(listOfMeasures).values()];
     console.log(uniqueListOfMeasures);
       //a.appOpens/(Math.max(a.activeUsers,1)),b.appOpens/(Math.max(b.activeUsers,1))));
-    createVisual(datingData);
+    createVisual(datingData, userData);
     //createTimeLine(data);
   });
 
+});
   /***********************************CREATE TIMELINE **************************************/
-  function createVisual(datingData){
-    var timeLineLabel;
+  function createVisual(datingData, userData){
     function createTimeLine(chartType, handleDate){
+      var timeLineLabel;
       var startDate = new Date(datingData[0].date),
       endDate = new Date(datingData[datingData.length-1].date);
       const totalDays=(endDate.getTime() - startDate.getTime()) / (1000 * 3600 * 24);
@@ -148,7 +153,7 @@ let uniqueListOfMeasures = [];
           .attr("x", timeX(h))
           .text(formatDate(h));
         // filter data set and redraw plot
-
+        console.log(chartType);
         //d3.select('#radial').select('svg').remove()
         if(scatterPlotOpen){
           updateScatter();
@@ -162,10 +167,31 @@ let uniqueListOfMeasures = [];
         .attr("x", timeX((handleDate)))
         .text(formatDate((handleDate)));
 
+      return(timeLineLabel);
+
     }
       
   /***************************************CREATE RADIAL GRAPH*********************************************/
   const covidColours=['#e31010','#ff5f03','#f5a105','#f2ed85','lightgrey']
+  const userColors = ['#e6194b', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4', '#46f0f0', '#f032e6', '#bcf60c', '#fabebe', '#008080', '#e6beff', '#9a6324', '#fffac8', '#800000', '#aaffc3', '#808000', '#ffd8b1', '#000075', '#808080', '#ffffff', '#000000'];
+
+  
+  //Create scatterplot Variables 
+  var counterClick = 0;
+  var counterColors = 0;
+  var user_counter = 0;
+  var counter_country_swipeLike = 0;
+  var counter_country_swipePass = 0;
+  var counter_country_messagesSent = 0;
+  var counter_country_messagesReceived = 0;
+  var counter_country_appOpens = 0;
+  //var selection_date = "Kein";
+  var isClickedOnTimeline = false;
+  var timeLineLabel2;
+  let mappingColorUser = {};
+  var xScale;
+  var yScale;
+
   function createLegend(svg){
 
     var defs = svg.append( 'defs' );
@@ -189,7 +215,7 @@ let uniqueListOfMeasures = [];
       .attr("y", -200)
       .attr("width", 245)
       .attr("height", 200)
-      .style("fill", "#373745")
+      .style("fill", "#1c2045")
       //.attr("fill-opacity",.9)
       .attr("filter", "url(#blur)");
       svg.append("text")
@@ -257,10 +283,12 @@ let uniqueListOfMeasures = [];
   }
 
   function get_anchor(i){
-      if(rotated(i) == 0 | rotated(i) == uniqueListOfCountries.length / 2){
+    let check = rotated(i);
+    let middleVal=[Math.floor(uniqueListOfCountries.length / 2),Math.floor(uniqueListOfCountries.length / 2)-1,Math.ceil(uniqueListOfCountries.length / 2),Math.ceil(uniqueListOfCountries.length / 2)+1]
+      if(check == 0 | middleVal.includes(check)){
           return 'middle';
       }
-      else if(rotated(i) < uniqueListOfCountries.length / 2){
+      else if(check < uniqueListOfCountries.length / 2){
           return 'start';
       }
       else{
@@ -278,7 +306,7 @@ let uniqueListOfMeasures = [];
   }
 
   /************************** MAKE RADIAL CHART *******************************/
-    createTimeLine("Radial", new Date(datingData[0].date));
+    var timeLineLabel =createTimeLine("Radial", new Date(datingData[0].date));
     var max= 300;
     var ticks= (max/10)+1
     var radius = 600;
@@ -291,7 +319,8 @@ let uniqueListOfMeasures = [];
     .attr('transform', 'translate(' + -300+ ',' + -100 +')')
     .append('g')
     .attr('transform', 'translate(' + (radius-75)+ ',' + 200 + ')');
-    
+  
+
     createLegend(svg);
 
     var value = 0;
@@ -302,7 +331,7 @@ let uniqueListOfMeasures = [];
           .attr('dx', 2)
           .attr('class', 'label')
           .style('font-weight', 'lighter')
-          .style('fill', 'black')
+          .style('fill', 'darkgrey')
           .text(value);
       for(tick = 1; tick <= ticks; tick++) {
           var value = (max * tick) / (ticks-1);
@@ -314,7 +343,7 @@ let uniqueListOfMeasures = [];
               .attr('dx', 2)
               .attr('class', 'label')
               .style('font-weight', 'lighter')
-              .style('fill', 'black')
+              .style('fill', 'darkgrey')
               .text(Math.ceil(value));  
       }
     for(i in uniqueListOfCountries){
@@ -342,7 +371,10 @@ let uniqueListOfMeasures = [];
           .attr('dy', function(){return get_dy(i)})
           .attr('text-anchor', get_anchor(i))
           .attr('class', 'label')
-          //.attr('id',currCountry)
+          .style('fill',function(){
+            if(i==0){ return "darkgrey";}
+            return "#1c2045";
+          })
           .text(currCountry)
           .style('font-size', '22px')
       textbox.append('rect')
@@ -468,7 +500,17 @@ let uniqueListOfMeasures = [];
       
       function clickon (){
         //console.log(new Date(currentDate));
-        openScatterplot(d3.select(this).select('title').text().split(':')[0],new Date(currentDate));
+        if(scatterPlotOpen){
+          d3.select("#scatter").style("display","none");
+          d3.select("#scatter").select("#timeLineScatter").selectAll("*").remove();
+          d3.select("#scatter").select("#yAxis").remove();
+          d3.select("#scatter").select("#xAxis").remove();
+          scatterPlotOpen=false;
+          return;
+        }else{
+          scatterPlotOpen=true;
+          openScatterplot(d3.select(this).select('title').text().split(':')[0],new Date(currentDate));
+        }
       }
 
       function mouseover () {
@@ -485,6 +527,7 @@ let uniqueListOfMeasures = [];
         };
       
         function mouseout () {
+          if(scatterPlotOpen){return;}
           var currentDate = formatDateForData(new Date(timeLineLabel.text()));
           //const avgUsers = d3.select(this).node();
           if(!d3.select(this).select('title').text().includes(currentDate)){
@@ -714,84 +757,75 @@ let uniqueListOfMeasures = [];
             
   }
   
-  function openScatterplot(country, handleDate){
-    // $("#radial").addClass("disabledbutton");
-    scatterPlotOpen=true;
-    
-    var selectedCountry = country;
-    var h1Tag = document.createElement('H1');
-    h1Tag.innerHTML = selectedCountry;
-    document.getElementById('scatter').prepend(h1Tag);
-    let measureColors={};
-    for(i = 1; i<= uniqueListOfMeasures.length; i++){
-      measureColors[uniqueListOfMeasures[i-1]]=["rgb(",(245-i*20),",",(30+245%(i*7)),",",(i*(i+3)),")"].join("");
-    }
-    d3.json("data/allUsers_ByDate.json", d => {
-      /*  return {
-          date: d[i].date,
-          country: d[i].country,
-          swipe_passes: d[i].swipe_passes,
-          swipe_likes: d[i].swipe_likes,
-          messages: d[i].messages,
-          appOpens: d[i].appOpens
-        }*/
-    }).then(data => {
-
-      var filterData = data.filter(data => data.country == country);
-
-      createScatterPlot(filterData, handleDate);
-    })
-
-    console.log(country);
-    var heightGraph = 400;
-
-    let element_ddCountry = document.getElementById("select-country");
-    function changeTitle() {
-
-      let element_title = document.getElementById("titleCountry");
-
-      selectedCountry = element_ddCountry.value;
-      element_title.textContent = selectedCountry;
-
-      const element = document.querySelectorAll(".bubble");
-      for (var i = 0; i < element.length; i++) {
-        d3.select(element[i]).remove();
+  function openScatterplot(selectedCountry, selectedDate){
+      // $("#radial").addClass("disabledbutton");
+      d3.select("#scatter").style("display","block");
+      var h1Tag = document.getElementById('plotTitle');
+      h1Tag.innerHTML = selectedCountry;
+      //document.getElementById('scatter').prepend(h1Tag);
+      let measureColors={};
+      for(i = 1; i<= uniqueListOfMeasures.length; i++){
+        measureColors[uniqueListOfMeasures[i-1]]=["rgb(",(245-i*20),",",(30+245%(i*7)),",",(i*(i+3)),")"].join("");
       }
+    //Define Graph setting
+    var heightGraph = 700;
+
+    var filterData = userData.filter(data => data.country == selectedCountry);
+
+    let xVar = document.getElementById("select-x-var").value;
+    let yVar = document.getElementById("select-y-var").value;
+    timeLineLabel2 =createTimeLine("Scatter", selectedDate);
+
+    xScale = d3.scaleLinear()
+    .domain([0, d3.max(filterData, d => d[xVar])])   // my x-variable has a max of 2500
+    .range([0, 1700]);   // my x-axis is 600px wide
+
+    yScale = d3.scaleLinear()
+    .domain([0, d3.max(filterData, d => d[yVar])])   // my y-variable has a max of 1200
+    .range([heightGraph, 0]);   // my y-axis is 400px high
+  // (the max and min are reversed because the 
+  // SVG y-value is measured from the top)
+
+    createScatterPlot(datingData, filterData, selectedDate);
+    
+
+  /**
+   * Function to Filter the data from the json file by Country (and date)
+   * @param {*} data_array 
+   * @param {*} givenCountry 
+   * @param {*} givenDate 
+   * @returns 
+   */
+  // function filterData_ByCountry(data_array, givenCountry) {
+  //   var filtered_data = [{}];
+  //   var counter_newDataArray = 0;
+  //   for (i = 0; i < data_array.length; i++) {
+  //     //Create a new Array with only the data from that country
+  //     if (data_array[i].country == givenCountry) {
+  //       //   if(data_array[i].swipePass==3279)console.log("Yes erkannt")
+  //       //  if (data_array[i].messagesSent > 1) {
+  //       //   if (data_array[i].appOpens > 1) {
+  //       // if (data_array[i].date == givenDate) {
+  //       filtered_data[counter_newDataArray] = data_array[i];
+  //       counter_newDataArray++;
+  //       //   }
+  //       //  }
+  //       //   }
+  //     }
+  //   }
+  //   //  console.log(filtered_data);
+  //   return filtered_data;
+  // }
 
 
-    }
 
-    function addCountry() {
-      let text = document.getElementById("titleCountry");
-      text.textContent = selectedCountry;
-      const opt1 = document.createElement("option");
-      opt1.value = "Dyn Country 3";
-      opt1.text = "Dyn Country 3";
-
-      element_ddCountry.add(opt1, null);
-    }
-
-  }
-  function createScatterPlot(allTestData, handleDate) {
-    console.log(handleDate);
-    createTimeLine("Scatter",handleDate);
-
+  function createScatterPlot(datingData, filteredData, selectedDate) {
+    //Create SVG
     let svg = d3.select("#plotSVG")
-      .style("overflow", "visible") // some tooltips stray outside the SVG border
-      .append("g")
-      .attr("transform", "translate(50,50)")
-
-    let xScale = d3.scaleLinear()
-      .domain([0, 250])   // my x-variable has a max of 2500
-      .range([0, 600]);   // my x-axis is 600px wide
-
-    let yScale = d3.scaleLinear()
-      .domain([0, 120])   // my y-variable has a max of 1200
-      .range([heightGraph, 0]);   // my y-axis is 400px high
-    // (the max and min are reversed because the 
-    // SVG y-value is measured from the top)
-
-
+    .style("overflow", "visible") // some tooltips stray outside the SVG border
+    .append("g")
+    .attr("transform", "translate(50,50)");
+  
     svg.append("g")       // the axis will be contained in an SVG group element
       .attr("id", "yAxis")
       .call(d3.axisLeft(yScale)
@@ -799,136 +833,37 @@ let uniqueListOfMeasures = [];
         .tickFormat(d3.format("d"))
         .tickSizeOuter(0)
       )
-
     svg.append("g")
       .attr("transform", "translate(0," + heightGraph + ")")    // translate x-axis to bottom of chart
       .attr("id", "xAxis")
       .call(d3.axisBottom(xScale)
         .ticks(5)
         .tickFormat(d3.format("d"))
-        .tickSizeOuter(0)
-      )
-
-    svg.selectAll(".bubble")
-      .data(allTestData)    // bind each element of the data array to one SVG circle
-
-      .join("circle")
-      .attr("class", "bubble")
-      .attr("cx", d => xScale(d.messagesSent + d.messagesReceived))   // set the x position based on the number of messages
-      .attr("cy", d => yScale(d.swipePass + d.swipeLike))   // set the y position based on the number of swipes
-      .attr("r", d => Math.sqrt(d.appOpens) * 3)  // set the radius based on the article reading time
-      .attr("stroke", d => measureColors[datingData.filter(data => data.date==d.date).filter(data=> data.country==d.country)[0]["measure"]])
-      .attr("fill", d => measureColors[datingData.filter(data => data.date==d.date).filter(data=> data.country==d.country)[0]["measure"]])
-      .attr("fill-opacity", 0.5)
-      .on("mouseover", (e, d) => {    // event listener to show tooltip on hover
-        d3.select("#bubble-tip-" + d.userID)  // i'm using the publish time as a unique ID
-          .style("display", "block");
-      })
-      .on("mouseout", (e, d) => {    // event listener to hide tooltip after hover
-        if (!d.toolTipVisible) {
-          d3.select("#bubble-tip-" + d.userID)
-            .style("display", "none");
-        }
-      })
-      .on("click", (e, d) => {    // event listener to make tooltip remain visible on click
-        if (!d.toolTipVisible) {
-          d3.select("#bubble-tip-" + d.userID)
-            .style("display", "block");
-          d.toolTipVisible = true;
-        }
-        else {
-          d3.select("#bubble-tip-" + d.userID)
-            .style("display", "none");
-          d.toolTipVisible = false;
-        }
-      });
+        .tickSizeOuter(0))
+    //console.log(filteredData.filter(data=> data.date<= selectedDate), selectedDate, filteredData[0]["date"]);
+    plotScatterCircles(datingData, filteredData.filter(d=> new Date(d.date)<= selectedDate), selectedDate);
 
 
-    svg.selectAll(".bubble-tip")
-      .data(allTestData)
-      .join("g")
-      .attr("class", "bubble-tip")
-      .attr("id", (d) => "bubble-tip-" + d.userID)
-      .attr("transform", d => "translate(" + (xScale(d.messagesSent+d.messagesReceived) + 20) + ", " + yScale(d.swipeLike + d.swipePass) + ")")
-      .style("display", "none")
-      .append("rect")     // this is the background to the tooltip
-      .attr("x", -5)
-      .attr("y", -20)
-      .attr("rx", 5)
-      .attr("fill", "white")
-      .attr("fill-opacity", 0.9)
-      .attr("width", 180)
-      .attr("height", 100)
-
-    // SVG does not wrap text
-    // so I add a new text element for each line (4 words)
-    svg.selectAll(".bubble-tip")
-      .append("text")
-      .text(d => d.country)
-      .style("font-family", "sans-serif")
-      .style("font-size", 14)
-      .attr("stroke", "none")
-      .attr("fill", d => measureColors[datingData.filter(data => data.date==d.date).filter(data=> data.country==d.country)[0]["measure"]])
-
-
-    svg.selectAll(".bubble-tip")
-      .append("text")
-      .classed("bubble-tip-yText", true)
-      .text(d => "(" + d.swipeLike + " swipes)")
-      .attr("y", d => (20))
-      .style("font-family", "sans-serif")
-      .style("font-size", 14)
-      .attr("stroke", "none")
-      .attr("fill", d => measureColors[datingData.filter(data => data.date==d.date).filter(data=> data.country==d.country)[0]["measure"]])
-
-    let xVar = document.getElementById("select-x-var").value;
-    let yVar = "swipeLike";
     document.getElementById("select-x-var").addEventListener("change", (e) => {
 
       // update the x-variable based on the user selection
       xVar = e.target.value
 
-      if (xVar === "userID") {
 
-        xScale = d3.scaleTime()
-          .domain([d3.min(allTestData, d => d[xVar]), d3.max(allTestData, d => d[xVar])])
-          .range([0, 600]);
+      // rescale the x-axis
+      xScale = d3.scaleLinear()
+        .domain([0, d3.max(filteredData, d => d[xVar])])
+        .range([0, 600]);
 
-        d3.select("#xAxis")
-          .call(d3.axisBottom(xScale)
-            .tickFormat(d3.timeFormat("%b %d")))
-        //see here for time formatting options: 
-        // https://github.com/d3/d3-time-format
-      }
-      else if (xVar === "category") {
+      // redraw the x-axis
+      svg.select("#xAxis")
+        .call(d3.axisBottom(xScale)
+          .ticks(5)
+          .tickFormat(d3.format("d"))
+          .tickSizeOuter(0)
+        )
 
-        xScale = d3.scaleBand()
-          .domain(Object.keys(measureColors))
-          .range([0, 600])
-          .padding(1) // space them out so the bubble appears in the centre
 
-        svg.select("#xAxis")
-          .call(d3.axisBottom(xScale).tickSize(0))
-          .selectAll("text")
-          // offset the category names to fit them in horizontally
-          .attr("transform", (d, i) => `translate(0, ${(i % 2) * 20})`)
-          .style("fill", d => measureColors[d])
-      }
-      else {
-        // rescale the x-axis
-        xScale = d3.scaleLinear()
-          .domain([0, d3.max(allTestData, d => d[xVar])])
-          .range([0, 600]);
-
-        // redraw the x-axis
-        svg.select("#xAxis")
-          .call(d3.axisBottom(xScale)
-            .ticks(5)
-            .tickFormat(d3.format("d"))
-            .tickSizeOuter(0)
-          )
-
-      }
       // transition each circle element
       svg.selectAll(".bubble")
         .transition()
@@ -939,7 +874,8 @@ let uniqueListOfMeasures = [];
       svg.selectAll(".bubble-tip")
         .transition()
         .duration(1000)
-        .attr("transform", d => "translate(" + (xScale(d[xVar]) + 20) + ", " + yScale(d[yVar]) + ")")
+        .attr("transform", d => "translate(" + 700 + ", " + 200 + ")")
+      // .attr("transform", d => "translate(" + (xScale(d[xVar]) + 20) + ", " + yScale(d[yVar]) + ")")
     })
 
     document.getElementById("select-y-var").addEventListener("change", (e) => {
@@ -949,7 +885,7 @@ let uniqueListOfMeasures = [];
 
       // rescale the x-axis
       yScale = d3.scaleLinear()
-        .domain([0, d3.max(allTestData, d => d[yVar])])
+        .domain([0, d3.max(filteredData, d => d[yVar])])
         .range([heightGraph, 0]);
 
       // redraw the x-axis
@@ -970,202 +906,165 @@ let uniqueListOfMeasures = [];
         .text(d => "(" + d[yVar] + " " + yVar + ")")
 
       svg.selectAll(".bubble-tip")
-        .attr("transform", d => "translate(" + (xScale(d[xVar]) + 20) + ", " + yScale(d[yVar]) + ")")
+        .attr("transform", d => "translate(" + 700 + ", " + 200 + ")")
+      //  .attr("transform", d => "translate(" + (xScale(d[xVar]) + 20) + ", " + yScale(d[yVar]) + ")")
+
+
+
     })
+    calculateStats_ByCountry(filteredData.filter(d=> new Date(d.date)<= selectedDate));
+    editCountryStats(selectedDate);
   }
-  function updateScatter(){
-      //refilter data for dates from slider
-      //plot new data
-      //Maybe look at how I did this for the radial graph (updateRadial() and plotCirlcles())
+
   }
+  function colorBubblesGrey() {
+    //svg.selectAll(".bubble").attr("fill", d => "#e6e6e6")//grey
+    svg.selectAll(".bubble").attr("fill-opacity", 0.4)
+  }
+/**
+   * Calculate the stats for country
+   * @param {*} data_array 
+   * @param {*} givenCountry 
+   * @param {*} givenDate 
+   */
+function calculateStats_ByCountry(data_array) {
+  var listOfUsers = data_array.map(d => d.userID);
+  uniqueUsers = [...new Set(listOfUsers).values()];
+  user_counter=uniqueUsers.length;
+  counter_country_swipeLike = 0
+  counter_country_swipePass = 0
+  counter_country_messagesSent = 0
+  counter_country_messagesReceived = 0
+  counter_country_appOpens = 0;
+
+  for (i = 0; i < data_array.length; i++) {
+      counter_country_swipeLike = counter_country_swipeLike + data_array[i].swipeLike;
+      counter_country_swipePass = counter_country_swipePass + data_array[i].swipePass;
+      counter_country_messagesSent = counter_country_messagesSent + data_array[i].messagesSent;
+      counter_country_messagesReceived = counter_country_messagesReceived + data_array[i].messagesReceived;
+      counter_country_appOpens = counter_country_appOpens + data_array[i].appOpens;
+
+  }
+}
+  
+
+/**
+ * Add the stats of the selected country to the screen. 
+ * @param {*} numberSwipes 
+ * @param {*} numberconversationCount 
+ */
+function editCountryStats(selectedDate) {
+  document.getElementById("statsCountryTitle").innerHTML = "Total for Country: "+user_counter+" users";
+  if (selectedDate != "Kein") document.getElementById("stats-subtitle").innerHTML = "2017-01-01 to " + formatDateForData(selectedDate);
+  document.getElementById("swipeLike").innerHTML = "Likes: " + counter_country_swipeLike;
+  document.getElementById("swipePass").innerHTML = "Passes: " + counter_country_swipePass;
+  document.getElementById("messagesSent").innerHTML = "Messages Sent: " + counter_country_messagesSent;
+  document.getElementById("messagesReceived").innerHTML = "Messages Received: " + counter_country_messagesReceived;
+  document.getElementById("appOpens").innerHTML = "App Opens: " + counter_country_appOpens;
+
 
 }
 
-    
+  function plotScatterCircles(datingData, filteredData, selectedDate) {
+    var heightGraph = 700;
+    xVar = document.getElementById("select-x-var").value;
+    yVar = document.getElementById("select-y-var").value;
+    console.log(xVar, yVar)
+    let svg = d3.select("#plotSVG")
+      .style("overflow", "visible") // some tooltips stray outside the SVG border
+      .append("g")
+      .attr("transform", "translate(50,50)")
+
+  svg.selectAll(".bubble")
+    .enter()
+    .data(filteredData)    // bind each element of the data array to one SVG circle
+    .join("circle")
+    .attr("class", "bubble")
+    .attr("cx", d => xScale(d[xVar]))   // set the x position based on the number of conversationCount
+    .attr("cy", d => yScale(d[yVar]))   // set the y position based on the number of swipes
+    .attr("r", d => Math.sqrt(d.appOpens))  // set the radius based on the article reading time
+    .attr("fill", d => {
+      if (!mappingColorUser.hasOwnProperty(d.userID)) {
+        mappingColorUser[d.userID] = userColors[counterColors++]
+      }
+      return mappingColorUser[d.userID];
+    }
+    )
+    .attr("fill-opacity", d => {
+      if (d.date == selectedDate) {
+        return 1;
+      } else {
+        return 0.4;
+      }
+    })
+    .on("mouseover", (e, d) => {    // event listener to show tooltip on hover
+      d3.select("#bubble-tip-" + d.userID)  // i'm using the publish time as a unique ID
+        .style("display", "block");
+    })
+    .on("mouseout", (e, d) => {    // event listener to hide tooltip after hover
+      if (!d.toolTipVisible) {
+        d3.select("#bubble-tip-" + d.userID)
+          .style("display", "none");
+      }
+    })
+    .on("click", (e, d) => {    // event listener to make tooltip remain visible on click
+      if (!d.toolTipVisible) {
+        d3.select("#bubble-tip-" + d.userID)
+          .style("display", "block");
+        d.toolTipVisible = true;
+      }
+      else {
+        d3.select("#bubble-tip-" + d.userID)
+          .style("display", "none");
+        d.toolTipVisible = false;
+      }
+    });
+
+  svg.selectAll(".bubble-tip")
+    .data(filteredData)
+    .join("g")
+    .attr("class", "bubble-tip")
+    .attr("id", (d) => "bubble-tip-" + d.userID)
+    .attr("transform", d => "translate(" + 700 + ", " + 200 + ")")
+    .style("display", "none")
+    .append("rect")     // this is the background to the tooltip
+    .attr("x", -5)
+    .attr("y", -20)
+    .attr("rx", 5)
+    .attr("fill", "white")
+    .attr("fill-opacity", 0.9)
+    .attr("width", 180)
+    .attr("height", 100)
+
+  svg.selectAll(".bubble-tip")
+    .append("text")
+    .text(d => "user: " + d.userID)
+    .style("font-family", "sans-serif")
+    .style("font-size", 14)
+    .attr("stroke", "none")
+    .attr("fill", d => mappingColorUser[d.userID])
+
+
+
+
+
+  }
+
+  function updateScatter() {
+    colorBubblesGrey();
+    selectedDate = formatDateForData(new Date(timeLineLabel2.text()));
+    // filteredDatingData = datingData.filter(data => data.date <= date);
+    filteredUserData = userData.filter(data => data.date <= selectedDate);
+    d3.selectAll('.bubble').remove();
+    plotScatterCircles(datingData, filteredUserData);
+    if (!isClickedOnTimeline) {
+      mappingColorUser = {}
+      counterColors = 0;
+      isClickedOnTimeline = true;
+    }
+    calculateStats_ByCountry(filteredUserData);
+    editCountryStats(selectedDate);
+  }
+}
+
   
-
-
-// const createBarChart = (data, colors) => {
-//   // Set the dimensions and margins of the graph
-//   const width = 900, height = 400;
-//   const margins = {top: 10, right: 30, bottom: 80, left: 20};
-
-//   // Filter the data from the date 2020
-//   let newData = data.filter(data => data.date == "2020");
-
-//   // Create the SVG container
-//   const svg = d3.select("#bar")
-//     .append("svg")
-//     .attr("viewBox", [0, 0, width, height]);
-
-//   // Define x-axis, y-axis, and color scales
-//   const xScale = d3.scaleBand()
-//     .domain(newData.map(d => d.country))
-//     .range([margins.left, width - margins.right])
-//     .padding(0.2);
-
-//   const yScale = d3.scaleLinear()
-//     .domain([0, d3.max(newData, d => d.value)])
-//     .range([height - margins.bottom, margins.top]);
-
-//   // Create the bar elements and append to the SVG group
-//   let bar = svg.append("g")
-//     .selectAll("rect")
-// // TODO: Add geo as id to refer to the data point
-//     .data(newData, d=> d.geo)
-//     .join("rect")
-// // TODO: Add geo as the class
-// .attr("class", d=> '$(d.geo)')
-//       .attr("x", d => xScale(d.country))
-//       .attr("y", d => yScale(d.value))
-//       .attr("height", d => yScale(0) - yScale(d.value))
-//       .attr("width", xScale.bandwidth())
-//       .attr("fill", d => colors(d.country));
-
-// // TODO: 2.1 Add event listener to each bar
-//   bar.on("mouseover",mouseover);
-
-//   bar.on("mouseout", mouseout);
-
-//   // Add the tooltip when hover on the bar
-//   bar.append('title').text(d => d.country);
-
-//   // Create the x and y axes and append them to the chart
-//   const yAxis = d3.axisLeft(yScale);
-
-//   const yGroup = svg.append("g")
-//       .attr("transform", `translate(${margins.left},0)`)
-//     .call(yAxis)
-//     .call(g => g.select(".domain").remove());
-
-//   const xAxis = d3.axisBottom(xScale);
-
-//   const xGroup = svg.append("g")
-//       .attr("transform", `translate(0,${height - margins.bottom})`)
-//     .call(xAxis);
-
-//   xGroup.selectAll("text")
-//     .style("text-anchor", "end")
-//     .attr("dx", "-.8em")
-//     .attr("dy", ".15em")
-//     .attr("transform", "rotate(-65)");
-
-// // TODO: 1.1 Add event listener to the date slider
-//   d3.select("#dateSlider").on("change", function(e) {
-//     // Get the date selected
-//     console.log(`date = ${this.value} `);
-//     // Update the chart
-//     update();
-//   });
-
-// // TODO: 1.2 Add event listener to the sort dropdown
-//   d3.select("#sort").on("change", function(e) {
-//     // Get the sorting option selected
-//     console.log(`sort = ${this.value} `);
-//     // Updte the chart
-//     update();
-//   });
-
-// // TODO: 1.3 Update the bar chart based on new inputs
-//   function update() {
-//     // 1.4 Get the selected date and sorting method
-//     const date = d3.select("#dateSlider").node().value;
-//     const sort = d3.select("#sort").node().value;
-//     // 1.5. Filter and sorting the new data
-//     newData= data.filter(data => data.date == date);
-//     switch(sort){
-//       case "alphabet":
-//         newData= newData.sort((a,b)=> d3.ascending(a.country,b.country));
-//         break;
-//       case "sortAsce":
-//         newData= newData.sort((a,b)=> d3.ascending(a.value,b.value));
-//         break;
-//       case "sortDesc":
-//         newData= newData.sort((a,b)=> d3.descending(a.country,b.country));
-//         break;
-//     }
-
-//     // 1.6 Define new x and y scales
-
-//     const xScale = d3.scaleBand()
-//                   .domain(newData.map(d=>d.country))
-//                   .range([margins.left, width-margins.right])
-//                   .padding(0.2);
-
-//     const yScale = d3.scaleLinear()
-//                   .domain([0,d3.max(newData, d=>d.value)])
-//                   .range([height-margins.bottom,margins.top]);
-//     // 1.7. Define a transition.
-//     const t= svg.transition().duration(1000);
-//     // 1.8 Update the bar chart with enter, update, and exit pattern
-//     bar = bar 
-//           .data(newData, d=> d.geo)
-//           .join(
-//             enter =>enter.append("rect")
-//             .attr("class", d=> `$(d.geo)`)
-//             .attr("x", d=> xScale(d.country))
-//             .attr("y", d=> yScale(d.value))
-//             .attr("height", 0)
-//             .attr("width", xScale.bandwidth())
-//             .attr("fill", d=> colors(d.country))
-//             .on("mouseover", mouseover)
-//             .on("mouseout", mouseout)
-//             .call(enter => enter.transition(t))
-//             .attr("height", d => yScale(0)-yScale(d.value)),
-//             update => update.transition(t)
-//             .attr("x", d=> xScale(d.country))
-//             .attr("y", d=> yScale(d.value))
-//             .attr("height", d=> yScale(0)-yScale(d.value))
-//             .attr( "width", xScale.bandwidth()),
-//             exit => exit.transition(t)
-//             .attr("y", yScale(0))
-//             .attr("height", 0)
-//             .remove()
-//           );
-//     // 1.9 Transition on the x and y axes
-//     const xAxis= d3.axisBottom(xScale);
-//     const yAxis = d3.axisLeft(yScale);
-
-//     xGroup.transition(t)
-//             .call(xAxis)
-//             .call(g => g.selectAll(".tick"));
-//     xGroup.selectAll("text")
-//             .style("text-anchor","end")
-//             .attr("dx", "-.8em")
-//             .attr("dy", ".15em")
-//             .attr("transform","rotate(-65)");
-//     yGroup.transition(t)
-//             .call(yAxis)
-//             .selection()
-//             .call(g => g.select(".domain").remove());
-//   }
-//   function mouseover () {
-//     const geo = d3.select(this).attr('class');
-//     const color = d3.select(this).attr('fill');
-
-//     d3.select(this)
-//       .attr("stroke", "#333")
-//       .attr("stroke-width", 2);
-
-//     d3.select(`path.${geo}`)
-//       .style("stroke", color)
-//       .style("opacity", 1);
-
-//       d3.select(`text.${geo}`)
-//         .style("visibility", "visible");
-//   };
-
-//   function mouseout () {
-//     const geo = d3.select(this).attr('class');
-
-//     d3.select(this)
-//       .attr("stroke", null);
-
-//     d3.select(`path.${geo}`)
-//       .style("stroke", "lightgrey")
-//       .style("opacity", 0.3);
-
-//       d3.select(`text.${geo}`)
-//         .style("visibility", "hidden");
-//   };
-// }

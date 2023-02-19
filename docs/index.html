@@ -10,13 +10,13 @@
 <body>
 	<h1 style="font-size: 50px;">Pandemic Dating</h1>
 	<h2 style="font-size: 35px;">A Visualization of How Online Love Adapted to the Pandemic</h2>
-	<div id="timeLineRadial" class="responsive-svg-container" >
+	<div id="timeLine" class="responsive-svg-container" >
 			<button id="play-button" >Play</button>
 	</div>
 	<div id="radial" class="responsive-svg-container" >
 		<!-- "Average number of times a user opened their online dating application by country" -->
 	</div>
-	<div id ="scatter">
+	<!-- <div id ="scatter">
 		<div class="float-container">
 			<div class="float-child">
 				<h1 id= "plotTitle" style="font-size: 35px; position: relative; top:0px; left:150px;"></h1>
@@ -42,7 +42,7 @@
 		<div id="plot-wrapper" style="position: relative; overflow: visible; margin: 10px 200px;">
 			<svg id="plotSVG" width=1700 height=800></svg>
 			<select id="select-y-var" style="position: absolute; top:150px; left:0px;">
-				<!--<option value="swipes" >Swipes</option>-->
+				
 				<option value="swipePass">Passes</option>
 				<option value="swipeLike"selected>Likes</option>
 				<option value="messagesSent">Messages Sent</option>
@@ -50,12 +50,12 @@
 				<option value="appOpens">Open</option>
 			</select>
 			<select id="select-x-var" style="position: absolute; bottom:0px; right: 0px;">
-				<!--<option value="messages">Messages</option>-->
+				
 				<option value="messagesSent">Messages Sent</option>
 				<option value="messagesReceived">Messages Received</option>
 	
 				<option value="appOpens"selected >Open</option>
-			<!--	<option value="swipes">Swipes</option>-->
+			
 				<option value="swipePass">Passes</option>
 				<option value="swipeLike">Likes</option>
 
@@ -64,7 +64,7 @@
 			<div id="timeLineScatter" class="responsive-svg-container" >
 			<button id="play-button" >Play</button>
 		</div>
-	</div>
+	</div> -->
 	<!-- <script src="js/timeline.js"></script> -->
 	<!-- <script src="js/Scatterplot.js"></script>	 -->
 	<script src="js/radial.js"></script>

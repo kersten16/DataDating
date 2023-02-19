@@ -1,6 +1,8 @@
 // Set the time format
 //const parseTime = d3.timeParse("%Y");
-d3.select("#scatter").style("display","none");
+//d3.select("#scatter").style("display","none");
+let SAVED_DATE=new Date(window.location.href.split("/?date=")[1]);
+console.log(SAVED_DATE)
 var formatDateIntoMonth = d3.timeFormat("%m/%y");
 var formatDate = d3.timeFormat("%b %d %Y");
 var formatDateForData = d3.timeFormat("%Y-%m-%d")
@@ -37,7 +39,6 @@ d3.json("data/allUsers_ByDate.json", d => {
     uniqueListOfCountries.unshift("Scale");
     var listOfMeasures = datingData.map(d => d.measure);
     uniqueListOfMeasures = [...new Set(listOfMeasures).values()];
-    console.log(uniqueListOfMeasures);
       //a.appOpens/(Math.max(a.activeUsers,1)),b.appOpens/(Math.max(b.activeUsers,1))));
     createVisual(datingData, userData);
     //createTimeLine(data);
@@ -46,18 +47,18 @@ d3.json("data/allUsers_ByDate.json", d => {
 });
   /***********************************CREATE TIMELINE **************************************/
   function createVisual(datingData, userData){
-    function createTimeLine(chartType, handleDate){
+    function createTimeLine(){
       var timeLineLabel;
       var startDate = new Date(datingData[0].date),
       endDate = new Date(datingData[datingData.length-1].date);
       const totalDays=(endDate.getTime() - startDate.getTime()) / (1000 * 3600 * 24);
-      //console.log(startDate, endDate)
+      if(SAVED_DATE=="Invalid Date"){SAVED_DATE=startDate;}
 
       var timelineMargin = { top: 50, right: 50, bottom: 0, left: 50 },
         timelineWidth = 2*width/3 - timelineMargin.left - timelineMargin.right,
         timelineHeight = 200 - timelineMargin.top - timelineMargin.bottom;
 
-      var svg = d3.select("#timeLine"+chartType)
+      var svg = d3.select("#timeLine")
         .append("svg")
         .attr("width", timelineWidth + timelineMargin.left + timelineMargin.right)
         .attr("height", timelineHeight + timelineMargin.top + timelineMargin.bottom);
@@ -112,14 +113,16 @@ d3.json("data/allUsers_ByDate.json", d => {
 
       var handle = slider.insert("circle", ".track-overlay")
         .attr("class", "handle")
+        .attr("cx", timeX(SAVED_DATE))
         .attr("r", 9);
 
       timeLineLabel = slider.append("text")
         .attr("class", "label")
         .attr("text-anchor", "middle")
-        .text(formatDate(startDate))
+        .text(formatDate(SAVED_DATE))
         .attr("fill", "lightgrey")
         .attr("transform", "translate(0," + (-15) + ")")
+        .attr("x", timeX(SAVED_DATE))
 
         playButton
           .on("click", function () {
@@ -155,22 +158,11 @@ d3.json("data/allUsers_ByDate.json", d => {
           .attr("x", timeX(h))
           .text(formatDate(h));
         // filter data set and redraw plot
-        console.log(chartType);
-        //d3.select('#radial').select('svg').remove()
-        if(scatterPlotOpen){
-          updateScatter();
-        }else{
           updateRadial();
-        }
-          
+        
       }
-      handle.attr("cx", timeX((handleDate)));
-      timeLineLabel
-        .attr("x", timeX((handleDate)))
-        .text(formatDate((handleDate)));
 
       return(timeLineLabel);
-
     }
       
   /***************************************CREATE RADIAL GRAPH*********************************************/
@@ -342,7 +334,7 @@ d3.json("data/allUsers_ByDate.json", d => {
   }
 
   /************************** MAKE RADIAL CHART *******************************/
-    var timeLineLabel =createTimeLine("Radial", new Date(datingData[0].date));
+    var timeLineLabel =createTimeLine();
     var max= 300;
     var ticks= (max/10)+1
     var radius = 600;
@@ -465,7 +457,8 @@ d3.json("data/allUsers_ByDate.json", d => {
           });
           
     }
-    plotDataCircles(filteredDatingData);
+    updateRadial();
+    //plotDataCircles(filteredDatingData);
     // for(item of filteredDatingData.filter(newData => newData.date==date)){
     //   createCloudChart(item);
     // }
@@ -549,7 +542,6 @@ d3.json("data/allUsers_ByDate.json", d => {
           
           //  openScatterplot(d3.select(this).select('title').text().split(':')[0],new Date(currentDate));
         }*/
-        console.log();
         window.location.href = window.location.href.split("/docs")[0]+"/ScatterPlot/index.html?country="+d3.select(this).select('title').text().split(':')[0]+"&date="+currentDate;
          
       }

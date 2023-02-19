@@ -4,6 +4,7 @@ var heightGraph = 400;
 //Create  Variables 
 var counterClick = 0;
 var counterColors = 0;
+var user_counter = 0;
 var counter_country_swipeLike = 0;
 var counter_country_swipePass = 0;
 var counter_country_messagesSent = 0;
@@ -111,6 +112,9 @@ function filterData_ByCountry(data_array, givenCountry) {
  * @param {*} givenDate 
  */
 function calculateStats_ByCountry(data_array, givenCountry, givenDate) {
+  var listOfUsers = data_array.map(d => d.userID);
+     uniqueUsers = [...new Set(listOfUsers).values()];
+     user_counter=uniqueUsers.length;
   counter_country_swipeLike = 0
   counter_country_swipePass = 0
   counter_country_messagesSent = 0
@@ -153,7 +157,6 @@ function editCountryStats(selectedDate) {
   document.getElementById("messagesReceived").innerHTML = "Messages Received: " + counter_country_messagesReceived;
   document.getElementById("appOpens").innerHTML = "App Opens: " + counter_country_appOpens;
 */
-var user_counter=Object.keys(mappingColorUser).length;
    document.getElementById("statsCountryTitle").innerHTML = "Total for Country: "+user_counter+" users";
    if (selectedDate != "Kein") document.getElementById("stats-subtitle").innerHTML = "2017-01-01 to " + formatDateForData(selectedDate);
    document.getElementById("swipeLike").innerHTML = "Likes: " + counter_country_swipeLike;

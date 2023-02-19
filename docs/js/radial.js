@@ -30,7 +30,7 @@ let uniqueListOfMeasures = [];
     datingData = datingData.sort((a, b) => d3.ascending(a.date, b.date)|| d3.ascending(a.country, b.country));
     var listOfCountries = datingData.map(d => d.country);
     uniqueListOfCountries = [...new Set(listOfCountries).values()];
-    
+    uniqueListOfCountries.unshift("Scale");
     var listOfMeasures = datingData.map(d => d.measure);
     uniqueListOfMeasures = [...new Set(listOfMeasures).values()];
     console.log(uniqueListOfMeasures);
@@ -167,31 +167,69 @@ let uniqueListOfMeasures = [];
   /***************************************CREATE RADIAL GRAPH*********************************************/
   const covidColours=['#e31010','#ff5f03','#f5a105','#f2ed85','lightgrey']
   function createLegend(svg){
-      // create a list of keys
-      var keys = ["<= 7 days", "8 - 14 days", "15 - 21 days", "22 - 28 days", "> 28 days"]
 
+    var defs = svg.append( 'defs' );
+
+    // append filter element
+    var filter = defs.append( 'filter' )
+                    .attr( 'id', 'blur' ) /// !!! important - define id to reference it later
+
+    // append gaussian blur to filter
+    filter.append( 'feGaussianBlur' )
+          .attr( 'in', 'SourceGraphic' )
+          .attr( 'stdDeviation', 5 ) // !!! important parameter - blur
+          .attr( 'result', 'blur' );
+
+      // create a list of keys
+      var keys = ["<= 7 days", "8 - 14 days", "15 - 21 days", "22 - 28 days", "> 28 days"];
+
+      svg.append("rect")
+      .attr("class", "legendBG")
+      .attr("x", 925)
+      .attr("y", -200)
+      .attr("width", 245)
+      .attr("height", 200)
+      .style("fill", "#373745")
+      //.attr("fill-opacity",.9)
+      .attr("filter", "url(#blur)");
+      svg.append("text")
+        .attr("x",940)
+        .attr("y",-180)
+        .style('font-size', '22px')
+        .text("Days since last COVID")
+        .attr("text-anchor", "left")
+        .style("alignment-baseline", "middle")
+        .style("fill", "white");
+        svg.append("text")
+        .attr("x",940)
+        .attr("y",-155)
+        .style('font-size', '22px')
+        .text("measure announced")
+        .attr("text-anchor", "left")
+        .style("alignment-baseline", "middle")
+        .style("fill", "white");
       // Add one dot in the legend for each name.
       svg.selectAll("mydots")
         .data(keys)
         .enter()
         .append("circle")
-          .attr("cx", 1000)
-          .attr("cy", function(d,i){ return -100 + i*25}) // 100 is where the first dot appears. 25 is the distance between dots
+          .attr("cx", 990)
+          .attr("cy", function(d,i){ return -120 + i*25}) // 100 is where the first dot appears. 25 is the distance between dots
           .attr("r", 8)
-          .style("fill", function(d){ return covidColours[keys.indexOf(d)];})
+          .style("fill", function(d){ return covidColours[keys.indexOf(d)];});
 
       // Add one dot in the legend for each name.
       svg.selectAll("mylabels")
         .data(keys)
         .enter()
         .append("text")
-          .attr("x", 1020)
-          .attr("y", function(d,i){ return -100 + i*25}) // 100 is where the first dot appears. 25 is the distance between dots
+          .attr("x", 1010)
+          .attr("y", function(d,i){ return -120 + i*25}) // 100 is where the first dot appears. 25 is the distance between dots
           .attr("fill", function(d){ return covidColours[keys.indexOf(d)];})
           .style('font-size', '20px')
           .text(function(d){ return d})
           .attr("text-anchor", "left")
-          .style("alignment-baseline", "middle")
+          .style("alignment-baseline", "middle");
   }
 
     function rotated(i){
@@ -250,11 +288,35 @@ let uniqueListOfMeasures = [];
     var svg = d3.select('#radial').append('svg')
     .attr('width', width + margin.left + margin.right)
     .attr('height', height + margin.top + margin.bottom)
-    .attr('transform', 'translate(' + -240+ ',' + -100 +')')
+    .attr('transform', 'translate(' + -300+ ',' + -100 +')')
     .append('g')
     .attr('transform', 'translate(' + (radius-75)+ ',' + 200 + ')');
     
     createLegend(svg);
+
+    var value = 0;
+    var plabel = get_xy(value*(ticks-1)/ticks+5+shift, 0, radius, max);
+    svg.append('text')
+          .attr('x', plabel[0]-10)
+          .attr('y', plabel[1])
+          .attr('dx', 2)
+          .attr('class', 'label')
+          .style('font-weight', 'lighter')
+          .style('fill', 'black')
+          .text(value);
+      for(tick = 1; tick <= ticks; tick++) {
+          var value = (max * tick) / (ticks-1);
+          var plabel = get_xy(value*(ticks-1)/ticks+5+shift, 0, radius, max);
+          //console.log(tick, value, plabel)
+          svg.append('text')
+              .attr('x', plabel[0]-10)
+              .attr('y', plabel[1])
+              .attr('dx', 2)
+              .attr('class', 'label')
+              .style('font-weight', 'lighter')
+              .style('fill', 'black')
+              .text(Math.ceil(value));  
+      }
     for(i in uniqueListOfCountries){
       
       var currCountry = uniqueListOfCountries[i];
@@ -282,7 +344,7 @@ let uniqueListOfMeasures = [];
           .attr('class', 'label')
           //.attr('id',currCountry)
           .text(currCountry)
-          .style('font-size', '20px')
+          .style('font-size', '22px')
       textbox.append('rect')
           .raise()
           .attr('class', 'textBB')
@@ -310,12 +372,13 @@ let uniqueListOfMeasures = [];
           .attr('fill-opacity', 0)
           .on("mouseover", function(e){
             //d3.selectAll('#'+e.target.parentNode.id+'_cloud').remove();
-            if(this.persist){return;}
+            if(this.persist || e.target.parentNode.id=="Scale"){return;}
             var date = formatDateForData(new Date(timeLineLabel.text()));
             extrafilteredDatingData = datingData.filter(data => data.date == date).filter(newData => newData.country==e.target.parentNode.id);
             return createCloudChart(extrafilteredDatingData[0]);
           } )
           .on("click",function(e){
+            if(e.target.parentNode.id=="Scale"){return;}
             if(this.persist){
               this.persist=false;
               d3.select(e.target).attr('stroke', null);

@@ -143,15 +143,24 @@ function calculateStats_ByCountry(data_array, givenCountry, givenDate) {
  * @param {*} numberSwipes 
  * @param {*} numberconversationCount 
  */
-function editCountryStats() {
+function editCountryStats(selectedDate) {
 
-  document.getElementById("statsCountryTitle").innerHTML = selectedCountry + " (Per User)";
+ /* document.getElementById("statsCountryTitle").innerHTML = selectedCountry + " (Per User)";
   if (selection_date != "Kein") document.getElementById("stats-subtitle").innerHTML = "Until " + selection_date;
   document.getElementById("swipeLike").innerHTML = "Likes: " + counter_country_swipeLike;
   document.getElementById("swipePass").innerHTML = "Passes: " + counter_country_swipePass;
   document.getElementById("messagesSent").innerHTML = "Messages Sent: " + counter_country_messagesSent;
   document.getElementById("messagesReceived").innerHTML = "Messages Received: " + counter_country_messagesReceived;
   document.getElementById("appOpens").innerHTML = "App Opens: " + counter_country_appOpens;
+*/
+var user_counter=Object.keys(mappingColorUser).length;
+   document.getElementById("statsCountryTitle").innerHTML = "Total for Country: "+user_counter+" users";
+   if (selectedDate != "Kein") document.getElementById("stats-subtitle").innerHTML = "2017-01-01 to " + formatDateForData(selectedDate);
+   document.getElementById("swipeLike").innerHTML = "Likes: " + counter_country_swipeLike;
+   document.getElementById("swipePass").innerHTML = "Passes: " + counter_country_swipePass;
+   document.getElementById("messagesSent").innerHTML = "Messages Sent: " + counter_country_messagesSent;
+   document.getElementById("messagesReceived").innerHTML = "Messages Received: " + counter_country_messagesReceived;
+   document.getElementById("appOpens").innerHTML = "App Opens: " + counter_country_appOpens;
 
 
 }
@@ -432,7 +441,7 @@ function createScatterPlot(filteredData) {
   })
   calculateStats_ByCountry(filteredData, selectedCountry, selectedDate);
 
-  editCountryStats();
+  editCountryStats(new Date(selectedDate));
 }
 
 /**
@@ -622,7 +631,7 @@ if(url_date);
     createBubbles(yScale, xScale, filteredData, selection_date);
 
     calculateStats_ByCountry(filteredData, selectedCountry);
-    editCountryStats();
+    editCountryStats(selection_date);
   }
 
 

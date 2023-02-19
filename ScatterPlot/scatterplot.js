@@ -37,12 +37,12 @@ var margin = { top: 50, right: 50, bottom: 50, left: 20 }, height = 1600;
 const width = 1600;
 var url = new URL(window.location.href);
 var url_country = url.searchParams.get("country");
-// console.log(c)
+
 selectedCountry = url_country;
 document.getElementById("titleCountry").innerHTML = selectedCountry;
 var url_date = new Date(url.searchParams.get("date"));
 selectedDate=url_date;
- console.log(url_date)
+
 //currentValue = date;
 //updateSlider(currentValue);
 
@@ -64,7 +64,7 @@ var covidData_ByCity = d3.json("../docs/data/allDates_Covid.json", d => {
   //Filter the data by country and Date
   var filterCovidData = filterData_ByCountry(covidData, selectedCountry);
   //Create Scatterplot with filtered data
-  // console.log(filterCovidData);
+ 
   return filterCovidData;
 
 })
@@ -90,7 +90,6 @@ function filterData_ByCountry(data_array, givenCountry) {
   for (i = 0; i < data_array.length; i++) {
     //Create a new Array with only the data from that country
     if (data_array[i].country == givenCountry) {
-      //   if(data_array[i].swipePass==3279)console.log("Yes erkannt")
       //  if (data_array[i].messagesSent > 1) {
       //   if (data_array[i].appOpens > 1) {
       // if (data_array[i].date == givenDate) {
@@ -101,7 +100,6 @@ function filterData_ByCountry(data_array, givenCountry) {
       //   }
     }
   }
-  //  console.log(filtered_data);
   return filtered_data;
 }
 
@@ -444,7 +442,6 @@ function createScatterPlot(filteredData) {
 
   })
   calculateStats_ByCountry(filteredData, selectedCountry, selectedDate);
-  console.log(selectedDate+"2")
   editCountryStats(new Date(selectedDate));
 }
 
@@ -581,7 +578,7 @@ if(url_date);
         if (covidData[i].date == selectedDateOnTimeline) {
           iscovidOnDate = true;
           measurement=covidData[i].category;
-          console.log(measurement);
+        
         }
       }
       
@@ -633,7 +630,7 @@ if(url_date);
 
 
     createBubbles(yScale, xScale, filteredData, selection_date);
-    console.log(selection_date+"1")
+   
     calculateStats_ByCountry(filteredData, selectedCountry);
     editCountryStats(selection_date);
   }
@@ -644,7 +641,7 @@ if(url_date);
 function goBackToStart() {
   var url = new URL(window.location.href);
   var date = url.searchParams.get("date");
-  console.log()
+ 
   window.location.href = window.location.href.split("/ScatterPlot")[0] + "/docs/?date=" + date;
 
 }

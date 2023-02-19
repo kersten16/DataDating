@@ -10,8 +10,7 @@
 <body>
 	<div>
 		<!--	<h1>Pandemic Dating</h1>
-		<h2>A Visualization of How Online Love Adapted to the Pandemic</h2>
--->
+		<h2>A Visualization of How Online Love Adapted to the Pandemic</h2>-->
 		<h1 id="titleCountry">Belgium</h1>
 		<script src="https://d3js.org/d3.v6.min.js"></script>
 		<!--<select id="select-country" onchange="changeTitle()">
@@ -22,38 +21,43 @@
 		<div id="plot-wrapper" style="position: relative; overflow: visible; margin-top: 20px;">
 			<svg id="plotSVG" width=700 height=500></svg>
 			<select id="select-y-var" style="position: absolute; top:0px; left:0px;">
-				<option value="swipes" selected>Swipes</option>
-				<option value="swipe_passes">Passes</option>
-				<option value="swipe_likes">Likes</option>
-				<option value="messages">Messages</option>
+				<!--<option value="swipes" >Swipes</option>-->
+				<option value="swipePass">Passes</option>
+				<option value="swipeLike"selected>Likes</option>
+				<option value="messagesSent">Messages Sent</option>
+				<option value="messagesReceived">Messages Received</option>
 				<option value="appOpens">Open</option>
 			</select>
 			<select id="select-x-var" style="position: absolute; bottom:0px; left: 600px;">
-				<option value="messages" selected>Messages</option>
-				<option value="appOpens">Open</option>
-				<option value="swipes">Swipes</option>
-				<option value="swipe_passes">Passes</option>
-				<option value="swipe_likes">Likes</option>
+				<!--<option value="messages">Messages</option>-->
+				<option value="messagesSent">Messages Sent</option>
+				<option value="messagesReceived">Messages Received</option>
+	
+				<option value="appOpens"selected >Open</option>
+			<!--	<option value="swipes">Swipes</option>-->
+				<option value="swipePass">Passes</option>
+				<option value="swipeLike">Likes</option>
 
 			</select>
 		</div>
 		<div id="country-stats">
-			<h2 style=" color: #0096FF;" class="solid">Stats of Belgium</h2>
+			<h2 style=" color: #0096FF;" class="solid" id="statsCountryTitle">Stats of Belgium</h2>
+			<h4  id="stats-subtitle">For whole time</h4>
+			
+			<p id="swipeLike">Likes: loading</p>
+			<p id="swipePass">Passes: loading</p>
+			<p id="messagesSent">Messages Sent: loading</p>
+			<p id="messagesReceived">Messages Received: loading</p>
+			<p id="appOpens">AppOpens: loading</p>
 		</div>
-	
-		<button onclick="functionGhost()" class="button button2">Grey</button>
 
+		<!--<button onclick="functionGhost()" class="button button2">Grey</button>-->
+		<div id="timeLine" class="responsive-svg-container">
+			<!--<button id="play-button">Play</button>-->
+		</div>
 		<script src="scatterplot.js"></script>
 	</div>
-	<!--<div>
-		<h1>Timeline</h1>
-		<script src="https://d3js.org/d3.v4.min.js"></script>
-	
-		<div id="vis">
-			<button id="play-button">Play</button>
-		</div>
-		<script src="timeline.js"></script>
-	</div>-->
+
 
 </body>
 

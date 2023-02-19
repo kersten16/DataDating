@@ -35,7 +35,7 @@ let uniqueListOfMeasures = [];
     uniqueListOfMeasures = [...new Set(listOfMeasures).values()];
     console.log(uniqueListOfMeasures);
       //a.appOpens/(Math.max(a.activeUsers,1)),b.appOpens/(Math.max(b.activeUsers,1))));
-    createVisual(datingData);
+    createTimeLine(datingData);
     //createTimeLine(data);
   });
 

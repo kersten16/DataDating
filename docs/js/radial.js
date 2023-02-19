@@ -536,7 +536,7 @@ d3.json("data/allUsers_ByDate.json", d => {
       
       function clickon (){
         //console.log(new Date(currentDate));
-        if(scatterPlotOpen){
+       /* if(scatterPlotOpen){
           d3.select("#scatter").style("display","none");
           d3.select("#scatter").select("#timeLineScatter").selectAll("*").remove();
           d3.select("#scatter").select("#yAxis").remove();
@@ -545,8 +545,12 @@ d3.json("data/allUsers_ByDate.json", d => {
           return;
         }else{
           scatterPlotOpen=true;
-          openScatterplot(d3.select(this).select('title').text().split(':')[0],new Date(currentDate));
-        }
+        
+          
+          //  openScatterplot(d3.select(this).select('title').text().split(':')[0],new Date(currentDate));
+        }*/
+        window.location.href = "http://127.0.0.1:5501/ScatterPlot/index.html?country="+d3.select(this).select('title').text().split(':')[0]+"&date="+currentDate;
+         
       }
 
       function mouseover () {

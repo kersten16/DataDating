@@ -34,15 +34,23 @@ let uniqueListOfCountries = [];
 var margin = { top: 50, right: 50, bottom: 50, left: 20 }, height = 1600;
 
 const width = 1600;
-
+var url = new URL(window.location.href);
+  var c = url.searchParams.get("country");
+ // console.log(c)
+  selectedCountry=c;
+  document.getElementById("titleCountry").innerHTML = selectedCountry;
+  
+  
 //Load Data Dating
 d3.json("../docs/data/" + name_file + ".json", d => {
 }).then(data => {
+  
   //Filter the data by country and Date
   var filterData = filterData_ByCountry(data, selectedCountry);
   //Create Scatterplot with filtered data
   createScatterPlot(filterData);
   createTimeLine(filterData);
+ 
 })
 
 //Load Covid Data of City
@@ -611,6 +619,12 @@ function createTimeLine(datingData, covidData) {
     editCountryStats();
   }
 
+  
 
-
+}
+function goBackToStart(){
+  var url = new URL(window.location.href);
+  var date = url.searchParams.get("date");
+  window.location.href = "http://127.0.0.1:5501/docs/?date="+date;
+       
 }

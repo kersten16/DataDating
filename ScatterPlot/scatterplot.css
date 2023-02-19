@@ -53,3 +53,15 @@ body {
 .horizontal{
   display:inline-block
 }
+body {
+  background-color: #141732;
+  font-family:"avenir next", Arial, sans-serif;
+  font-size: 12px;
+  color: #ffffff;
+}
+
+.ticks {
+  font-size: 10px;
+  color:#dcdcdc;
+}
+

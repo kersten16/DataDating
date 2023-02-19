@@ -282,10 +282,10 @@ function createBubbles(yScale, xScale, filteredData, selection_date) {
 const covidMeasures=["Lockdown",'Movement restrictions','Social distancing','Public health measures','None']
 
 let categoryCovid = {
-  "Lockdown": "#e31010",
-  "Movement restrictions": "#ff5f03",
-  "Social distancing": "#f5a105",
-  "Public health measures": "#f2ed85",
+  "Lockdown": "#550A35",
+  "Movement restrictions": "#810541",
+  "Social distancing": "#B3446C",
+  "Public health measures": "#D16587",
   "None":"lightgrey",
 
 }

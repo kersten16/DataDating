@@ -236,7 +236,7 @@ function createBubbles(yScale, xScale, filteredData, selection_date) {
     .attr("y", -20)
     .attr("rx", 5)
     .attr("fill", "white")
-    .attr("fill-opacity", 0.9)
+    .attr("fill-opacity", 0)
     .attr("width", 180)
     .attr("height", 100)
 
@@ -246,6 +246,36 @@ function createBubbles(yScale, xScale, filteredData, selection_date) {
     .style("font-family", "sans-serif")
     .style("font-size", 14)
     .attr("stroke", "none")
+    .attr("fill", d => mappingColorUser[d.userID])
+
+    svg.selectAll(".bubble-tip")
+    .append("text")
+    .classed("bubble-tip-yText", true)
+    // .text(d => "(swipes: " + (d.swipeLike + d.swipePass) + " )")
+    .attr("y", d => (20))
+    .text(d => {
+      return "(Gender: " + d.userGender + ")";
+    })
+    .attr("fill", d => mappingColorUser[d.userID])
+
+    svg.selectAll(".bubble-tip")
+    .append("text")
+    .classed("bubble-tip-yText", true)
+    // .text(d => "(swipes: " + (d.swipeLike + d.swipePass) + " )")
+    .attr("y", d => (40))
+    .text(d => {
+      return "(Birthdate: " + d3.timeFormat("%Y-%m-%d")((new Date(d.userDOB))) + ")";
+    })
+    .attr("fill", d => mappingColorUser[d.userID])
+
+    svg.selectAll(".bubble-tip")
+    .append("text")
+    .classed("bubble-tip-yText", true)
+    // .text(d => "(swipes: " + (d.swipeLike + d.swipePass) + " )")
+    .attr("y", d => (60))
+    .text(d => {
+      return "(Gender Preference: " + d.userGenderFilter + ")";
+    })
     .attr("fill", d => mappingColorUser[d.userID])
 
   /* svg.selectAll(".bubble-tip")
@@ -371,7 +401,16 @@ function createScatterPlot(filteredData) {
       .tickSizeOuter(0))
 
   createBubbles(yScale, xScale, filteredData, selection_date);
+  var startDate = new Date(filteredData[0].date);
+  var endDate = new Date(filteredData[filteredData.length - 1].date);
+  var timelineMargin = { top: 50, right: 50, bottom: 0, left: 50 },
+    timelineWidth = 2 * width / 3 - timelineMargin.left - timelineMargin.right,
+    timelineHeight = 200 - timelineMargin.top - timelineMargin.bottom;
 
+  var timeX2 = d3.scaleTime()
+    .domain([startDate, endDate])
+    .range([0, timelineWidth])
+    .clamp(true);
 
   document.getElementById("select-x-var").addEventListener("change", (e) => {
 
@@ -383,7 +422,7 @@ function createScatterPlot(filteredData) {
     xScale = d3.scaleLinear()
       .domain([0, d3.max(filteredData, d => {
         if (xVar == "date") {
-          return d[timeX(url_date)];
+          return timeX2(new Date(url_date));
         }
         return d[xVar];
       })])
@@ -403,9 +442,9 @@ function createScatterPlot(filteredData) {
       .transition()
       .duration(1000)
       .attr("cx", (d) => {
-
+        console.log(timeX2(new Date(url_date)))
         if (xVar == "date") {
-          return xScale(timeX(url_date))
+          return xScale(timeX2(new Date(url_date)))
         }
         return xScale(d[xVar]);
       })
@@ -584,7 +623,7 @@ function createTimeLine(datingData, covidData) {
       .attr("x", timeX(h))
       .text(formatDate(h));
     // update position and text of label according to slider scale
-   
+
     var iscovidOnDate = false;
     var measurement = "None";
     var selectedDateOnTimeline = formatDateForData(new Date(label.text()));
@@ -623,7 +662,7 @@ function createTimeLine(datingData, covidData) {
      .attr("cx",timeX(url_date))
      .attr("r", 9);*/
 
-     handle.attr("cx", timeX(h));
+    handle.attr("cx", timeX(h));
     updateScatter();
 
   }

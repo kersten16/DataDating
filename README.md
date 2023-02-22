@@ -10,6 +10,9 @@ There are three visualizations available to users. The main overview consists of
 #### Radial lollipop:
 This chart shows the average number of times a user opened their app on the given day per country (encoded in length), and also shows how recently a preventative COVID measure was announced for each country. There is a time slider to scroll through different available dates. This allows a comparison in user activity for each country and whether the region was under isolating restrictions.
 
+#### Timeline: [Visual HERE](https://kersten16.github.io/InfoVis/ScatterPlot/timeline.html)
+To better navigate through the Scatterplot we also have a timeline. Due to different versions of D3, we currently have problems to combine the scatterplot and the timeline. 
+
 #### Icon cloud:
 The cloud is made of icons, hearts represent swipes (pass or like) and message icons represent messages sent by a given user. Each full size icon represents 10 counts and if there are any leftovers, an icon scaled by that amount (for example if there was 64 messages, there would be 6 full sized icons and one icon at 4/10th of the size). This allows viewers to gauge the proportion of activity allocated to swiping vs messages.
 

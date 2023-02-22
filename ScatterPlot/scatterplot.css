@@ -82,3 +82,6 @@ body {
     stroke-width: 10px;
   }
 
+  a {
+    color: hotpink;
+  }

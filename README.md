@@ -3,14 +3,20 @@ Universite Paris Saclay Interactive Information Visalization
 
 [Visuals HERE](https://kersten16.github.io/InfoVis/docs)
 
-### What are the visualizations and how to read them
+## What are the visualizations and how to read them
 
 There are three visualizations available to users. The main overview consists of a radial chart that tracks the average number of times users open their apps per country each day along a timescale. From here, users can hover on the country names to see an overview for the amount of swipes and messages sent in the day and click on a data point to see more user specific information.
+
+#### Available Interactions:
+- Hover on country names
+- Slide through timeline
+- Hover on data point
+- Click on data point (to reach scatter plot)
 
 #### Radial lollipop:
 This chart shows the average number of times a user opened their app on the given day per country (encoded in length), and also shows how recently a preventative COVID measure was announced for each country. There is a time slider to scroll through different available dates. This allows a comparison in user activity for each country and whether the region was under isolating restrictions.
 
-#### Timeline: [Visual HERE](https://kersten16.github.io/InfoVis/ScatterPlot/timeline.html)
+#### Timeline:
 To better navigate through the Scatterplot we also have a timeline. Due to different versions of D3, we currently have problems to combine the scatterplot and the timeline. 
 
 #### Icon cloud:

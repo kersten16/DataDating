@@ -1,7 +1,7 @@
 # InfoVis
 Universite Paris Saclay Interactive Information Visalization
 
-[Visuals HERE](https://kersten16.github.io/InfoVis/docs)
+[Visuals HERE](https://kersten16.github.io/DataDating/docs)
 
 ## What are the visualizations and how to read them
 
@@ -22,7 +22,7 @@ To better navigate through the Scatterplot we also have a timeline. Due to diffe
 #### Icon cloud:
 The cloud is made of icons, hearts represent swipes (pass or like) and message icons represent messages sent by a given user. Each full size icon represents 10 counts and if there are any leftovers, an icon scaled by that amount (for example if there was 64 messages, there would be 6 full sized icons and one icon at 4/10th of the size). This allows viewers to gauge the proportion of activity allocated to swiping vs messages.
 
-#### Scatterplot: [Visual HERE](https://kersten16.github.io/InfoVis/ScatterPlot/)
+#### Scatterplot: [Visual HERE](https://kersten16.github.io/DataDating/ScatterPlot/)
 The scatterplot displays a country's historical user activity over time. The size of the dot serves as a proxy for user activity, with a larger dot signifying higher user activity. The type of covid-19 measurement on that particular day is currently represented by a coloured mark on the timeline. As a default, the graph's x-axis depicts the number of messages, and the y-axis displays the number of user swipes. The viewable data, however, can be altered by the user. This graph enables a comparison of user activity before, during, and after the announcement of a COVID preventative intervention.
 
 ### Who are these visualizations for and why should they care

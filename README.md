@@ -1,5 +1,5 @@
-# InfoVis
-Universite Paris Saclay Interactive Information Visalization
+# Online Dating during COVID19 Pandemic
+Universite Paris Saclay Interactive Information Visualization
 
 [Visuals HERE](https://kersten16.github.io/DataDating/docs)
 
